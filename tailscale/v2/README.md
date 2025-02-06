@@ -5,7 +5,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/tailscale.com/client/tailscale/v2.svg)](https://pkg.go.dev/tailscale.com/client/tailscale/v2)
 [![Go Report Card](https://goreportcard.com/badge/tailscale.com/client/tailscale/v2)](https://goreportcard.com/report/tailscale.com/client/tailscale/v2)
-![Github Actions](https://github.com/tailscale/client/actions/workflows/ci.yml/badge.svg?branch=main)
+![Github Actions](https://github.com/tailscale/tailscale-client-go-v2/actions/workflows/ci.yml/badge.svg?branch=main)
 
 A client implementation for the [Tailscale](https://tailscale.com) HTTP API.
 For more details, please see [API documentation](https://tailscale.com/api).
