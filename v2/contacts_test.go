@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 func TestClient_Contacts(t *testing.T) {
@@ -19,17 +18,17 @@ func TestClient_Contacts(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expectedContacts := &tsclient.Contacts{
-		Account: tsclient.Contact{
+	expectedContacts := &Contacts{
+		Account: Contact{
 			Email:             "test@example.com",
 			FallbackEmail:     "test2@example.com",
 			NeedsVerification: false,
 		},
-		Support: tsclient.Contact{
+		Support: Contact{
 			Email:             "test3@example.com",
 			NeedsVerification: false,
 		},
-		Security: tsclient.Contact{
+		Security: Contact{
 			Email:             "test4@example.com",
 			FallbackEmail:     "test5@example.com",
 			NeedsVerification: true,
@@ -52,14 +51,14 @@ func TestClient_UpdateContact(t *testing.T) {
 	server.ResponseBody = nil
 
 	email := "new@example.com"
-	updateRequest := tsclient.UpdateContactRequest{
+	updateRequest := UpdateContactRequest{
 		Email: &email,
 	}
-	err := client.Contacts().Update(context.Background(), tsclient.ContactAccount, updateRequest)
+	err := client.Contacts().Update(context.Background(), ContactAccount, updateRequest)
 	assert.NoError(t, err)
 	assert.Equal(t, http.MethodPatch, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/contacts/account", server.Path)
-	var receivedRequest tsclient.UpdateContactRequest
+	var receivedRequest UpdateContactRequest
 	err = json.Unmarshal(server.Body.Bytes(), &receivedRequest)
 	assert.NoError(t, err)
 	assert.EqualValues(t, updateRequest, receivedRequest)

@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient
+package tailscale
 
 import (
 	_ "embed"

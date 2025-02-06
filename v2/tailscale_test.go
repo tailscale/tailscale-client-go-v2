@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"bytes"
@@ -15,7 +15,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 type TestServer struct {
@@ -34,7 +33,7 @@ type TestServer struct {
 	ResponseHeader http.Header
 }
 
-func NewTestHarness(t *testing.T) (*tsclient.Client, *TestServer) {
+func NewTestHarness(t *testing.T) (*Client, *TestServer) {
 	t.Helper()
 
 	testServer := &TestServer{
@@ -64,7 +63,7 @@ func NewTestHarness(t *testing.T) (*tsclient.Client, *TestServer) {
 	baseURL := fmt.Sprintf("http://localhost:%v", listener.Addr().(*net.TCPAddr).Port)
 	testServer.BaseURL, err = url.Parse(baseURL)
 	assert.NoError(t, err)
-	client := &tsclient.Client{
+	client := &Client{
 		BaseURL: testServer.BaseURL,
 		APIKey:  "not a real key",
 		Tailnet: "example.com",
