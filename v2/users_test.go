@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 func TestClient_Users_List(t *testing.T) {
@@ -20,7 +19,7 @@ func TestClient_Users_List(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expectedUsers := map[string][]tsclient.User{
+	expectedUsers := map[string][]User{
 		"users": {
 			{
 				ID:                 "12345",
@@ -29,9 +28,9 @@ func TestClient_Users_List(t *testing.T) {
 				ProfilePicURL:      "http://example.com/users/janedoe",
 				TailnetID:          "1",
 				Created:            time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
-				Type:               tsclient.UserTypeMember,
-				Role:               tsclient.UserRoleOwner,
-				Status:             tsclient.UserStatusActive,
+				Type:               UserTypeMember,
+				Role:               UserRoleOwner,
+				Status:             UserStatusActive,
 				DeviceCount:        2,
 				LastSeen:           time.Date(2022, 2, 10, 12, 50, 23, 0, time.UTC),
 				CurrentlyConnected: true,
@@ -43,9 +42,9 @@ func TestClient_Users_List(t *testing.T) {
 				ProfilePicURL:      "http://example.com/users/johndoe",
 				TailnetID:          "2",
 				Created:            time.Date(2022, 2, 10, 11, 50, 23, 12, time.UTC),
-				Type:               tsclient.UserTypeShared,
-				Role:               tsclient.UserRoleMember,
-				Status:             tsclient.UserStatusIdle,
+				Type:               UserTypeShared,
+				Role:               UserRoleMember,
+				Status:             UserStatusIdle,
 				DeviceCount:        2,
 				LastSeen:           time.Date(2022, 2, 10, 12, 50, 23, 12, time.UTC),
 				CurrentlyConnected: true,
@@ -56,8 +55,8 @@ func TestClient_Users_List(t *testing.T) {
 
 	actualUsers, err := client.Users().List(
 		context.Background(),
-		tsclient.PointerTo(tsclient.UserTypeMember),
-		tsclient.PointerTo(tsclient.UserRoleAdmin))
+		PointerTo(UserTypeMember),
+		PointerTo(UserRoleAdmin))
 	assert.NoError(t, err)
 	assert.Equal(t, http.MethodGet, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/users", server.Path)
@@ -71,16 +70,16 @@ func TestClient_Users_Get(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expectedUser := &tsclient.User{
+	expectedUser := &User{
 		ID:                 "12345",
 		DisplayName:        "Jane Doe",
 		LoginName:          "janedoe",
 		ProfilePicURL:      "http://example.com/users/janedoe",
 		TailnetID:          "1",
 		Created:            time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
-		Type:               tsclient.UserTypeMember,
-		Role:               tsclient.UserRoleOwner,
-		Status:             tsclient.UserStatusActive,
+		Type:               UserTypeMember,
+		Role:               UserRoleOwner,
+		Status:             UserStatusActive,
 		DeviceCount:        2,
 		LastSeen:           time.Date(2022, 2, 10, 12, 50, 23, 0, time.UTC),
 		CurrentlyConnected: true,

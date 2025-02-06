@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 func TestClient_DevicePosture_CreateIntegration(t *testing.T) {
@@ -20,17 +19,17 @@ func TestClient_DevicePosture_CreateIntegration(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	req := tsclient.CreatePostureIntegrationRequest{
-		Provider:     tsclient.PostureIntegrationProviderIntune,
+	req := CreatePostureIntegrationRequest{
+		Provider:     PostureIntegrationProviderIntune,
 		CloudID:      "cloudid",
 		ClientID:     "clientid",
 		TenantID:     "tenantid",
 		ClientSecret: "clientsecret",
 	}
 
-	resp := &tsclient.PostureIntegration{
+	resp := &PostureIntegration{
 		ID:       "1",
-		Provider: tsclient.PostureIntegrationProviderIntune,
+		Provider: PostureIntegrationProviderIntune,
 		CloudID:  "cloudid",
 		ClientID: "clientid",
 		TenantID: "tenantid",
@@ -43,7 +42,7 @@ func TestClient_DevicePosture_CreateIntegration(t *testing.T) {
 	assert.Equal(t, "/api/v2/tailnet/example.com/posture/integrations", server.Path)
 	assert.Equal(t, resp, integration)
 
-	var actualRequest tsclient.CreatePostureIntegrationRequest
+	var actualRequest CreatePostureIntegrationRequest
 	err = json.Unmarshal(server.Body.Bytes(), &actualRequest)
 	require.NoError(t, err)
 	assert.Equal(t, req, actualRequest)
@@ -55,16 +54,16 @@ func TestClient_DevicePosture_UpdateIntegration(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	req := tsclient.UpdatePostureIntegrationRequest{
+	req := UpdatePostureIntegrationRequest{
 		CloudID:      "cloudid",
 		ClientID:     "clientid",
 		TenantID:     "tenantid",
-		ClientSecret: tsclient.PointerTo("clientsecret"),
+		ClientSecret: PointerTo("clientsecret"),
 	}
 
-	resp := &tsclient.PostureIntegration{
+	resp := &PostureIntegration{
 		ID:       "1",
-		Provider: tsclient.PostureIntegrationProviderIntune,
+		Provider: PostureIntegrationProviderIntune,
 		CloudID:  "cloudid",
 		ClientID: "clientid",
 		TenantID: "tenantid",
@@ -77,7 +76,7 @@ func TestClient_DevicePosture_UpdateIntegration(t *testing.T) {
 	assert.Equal(t, "/api/v2/posture/integrations/1", server.Path)
 	assert.Equal(t, resp, actualResp)
 
-	var actualRequest tsclient.UpdatePostureIntegrationRequest
+	var actualRequest UpdatePostureIntegrationRequest
 	err = json.Unmarshal(server.Body.Bytes(), &actualRequest)
 	require.NoError(t, err)
 	assert.Equal(t, req, actualRequest)
@@ -101,9 +100,9 @@ func TestClient_DevicePosture_GetIntegration(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	resp := &tsclient.PostureIntegration{
+	resp := &PostureIntegration{
 		ID:       "1",
-		Provider: tsclient.PostureIntegrationProviderIntune,
+		Provider: PostureIntegrationProviderIntune,
 		CloudID:  "cloudid1",
 		ClientID: "clientid1",
 		TenantID: "tenantid1",
@@ -123,23 +122,23 @@ func TestClient_DevicePosture_ListIntegrations(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	resp := []tsclient.PostureIntegration{
+	resp := []PostureIntegration{
 		{
 			ID:       "1",
-			Provider: tsclient.PostureIntegrationProviderIntune,
+			Provider: PostureIntegrationProviderIntune,
 			CloudID:  "cloudid1",
 			ClientID: "clientid1",
 			TenantID: "tenantid1",
 		},
 		{
 			ID:       "2",
-			Provider: tsclient.PostureIntegrationProviderJamfPro,
+			Provider: PostureIntegrationProviderJamfPro,
 			CloudID:  "cloudid2",
 			ClientID: "clientid2",
 			TenantID: "tenantid2",
 		},
 	}
-	server.ResponseBody = map[string][]tsclient.PostureIntegration{
+	server.ResponseBody = map[string][]PostureIntegration{
 		"integrations": resp,
 	}
 

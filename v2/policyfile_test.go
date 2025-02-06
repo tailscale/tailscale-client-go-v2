@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"context"
@@ -13,7 +13,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tailscale/hujson"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 var (
@@ -29,15 +28,15 @@ func TestACL_Unmarshal(t *testing.T) {
 	tt := []struct {
 		Name          string
 		ACLContent    []byte
-		Expected      tsclient.ACL
+		Expected      ACL
 		UnmarshalFunc func(data []byte, v interface{}) error
 	}{
 		{
 			Name:          "It should handle JSON ACLs",
 			ACLContent:    jsonACL,
 			UnmarshalFunc: json.Unmarshal,
-			Expected: tsclient.ACL{
-				ACLs: []tsclient.ACLEntry{
+			Expected: ACL{
+				ACLs: []ACLEntry{
 					{
 						Action:      "accept",
 						Ports:       []string(nil),
@@ -81,8 +80,8 @@ func TestACL_Unmarshal(t *testing.T) {
 					"tag:monitoring": {"group:devops"},
 					"tag:prod":       {"group:devops"},
 				},
-				DERPMap: (*tsclient.ACLDERPMap)(nil),
-				Tests: []tsclient.ACLTest{
+				DERPMap: (*ACLDERPMap)(nil),
+				Tests: []ACLTest{
 					{
 						User:   "",
 						Allow:  []string(nil),
@@ -97,7 +96,7 @@ func TestACL_Unmarshal(t *testing.T) {
 						Source: "alice@example.com",
 						Accept: []string{"tag:dev:80"}},
 				},
-				SSH: []tsclient.ACLSSH{
+				SSH: []ACLSSH{
 					{
 						Action:      "accept",
 						Source:      []string{"autogroup:members"},
@@ -115,7 +114,7 @@ func TestACL_Unmarshal(t *testing.T) {
 						Source:      []string{"tag:logging"},
 						Destination: []string{"tag:prod"},
 						Users:       []string{"root", "autogroup:nonroot"},
-						CheckPeriod: tsclient.Duration(time.Hour * 20),
+						CheckPeriod: Duration(time.Hour * 20),
 					},
 				},
 			},
@@ -131,8 +130,8 @@ func TestACL_Unmarshal(t *testing.T) {
 				}
 				return json.Unmarshal(b, v)
 			},
-			Expected: tsclient.ACL{
-				ACLs: []tsclient.ACLEntry{
+			Expected: ACL{
+				ACLs: []ACLEntry{
 					{
 						Action:      "accept",
 						Ports:       []string(nil),
@@ -176,8 +175,8 @@ func TestACL_Unmarshal(t *testing.T) {
 					"tag:monitoring": {"group:devops"},
 					"tag:prod":       {"group:devops"},
 				},
-				DERPMap: (*tsclient.ACLDERPMap)(nil),
-				SSH: []tsclient.ACLSSH{
+				DERPMap: (*ACLDERPMap)(nil),
+				SSH: []ACLSSH{
 					{
 						Action:      "accept",
 						Source:      []string{"autogroup:members"},
@@ -195,10 +194,10 @@ func TestACL_Unmarshal(t *testing.T) {
 						Source:      []string{"tag:logging"},
 						Destination: []string{"tag:prod"},
 						Users:       []string{"root", "autogroup:nonroot"},
-						CheckPeriod: tsclient.Duration(time.Hour * 20),
+						CheckPeriod: Duration(time.Hour * 20),
 					},
 				},
-				Tests: []tsclient.ACLTest{
+				Tests: []ACLTest{
 					{
 						User:   "",
 						Allow:  []string(nil),
@@ -219,7 +218,7 @@ func TestACL_Unmarshal(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			var actual tsclient.ACL
+			var actual ACL
 
 			assert.NoError(t, tc.UnmarshalFunc(tc.ACLContent, &actual))
 			assert.EqualValues(t, tc.Expected, actual)
@@ -232,8 +231,8 @@ func TestClient_SetACL(t *testing.T) {
 
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
-	expectedACL := tsclient.ACL{
-		ACLs: []tsclient.ACLEntry{
+	expectedACL := ACL{
+		ACLs: []ACLEntry{
 			{
 				Action: "accept",
 				Ports:  []string{"*:*"},
@@ -253,7 +252,7 @@ func TestClient_SetACL(t *testing.T) {
 				"user2@example.com",
 			},
 		},
-		Tests: []tsclient.ACLTest{
+		Tests: []ACLTest{
 			{
 				User:  "user1@example.com",
 				Allow: []string{"example-host-1:22", "example-host-2:80"},
@@ -272,7 +271,7 @@ func TestClient_SetACL(t *testing.T) {
 	assert.Equal(t, "", server.Header.Get("If-Match"))
 	assert.EqualValues(t, "application/json", server.Header.Get("Content-Type"))
 
-	var actualACL tsclient.ACL
+	var actualACL ACL
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualACL))
 	assert.EqualValues(t, expectedACL, actualACL)
 }
@@ -295,8 +294,8 @@ func TestClient_SetACLWithETag(t *testing.T) {
 
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
-	expectedACL := tsclient.ACL{
-		ACLs: []tsclient.ACLEntry{
+	expectedACL := ACL{
+		ACLs: []ACLEntry{
 			{
 				Action: "accept",
 				Ports:  []string{"*:*"},
@@ -310,7 +309,7 @@ func TestClient_SetACLWithETag(t *testing.T) {
 	assert.Equal(t, "/api/v2/tailnet/example.com/acl", server.Path)
 	assert.Equal(t, `"test-etag"`, server.Header.Get("If-Match"))
 
-	var actualACL tsclient.ACL
+	var actualACL ACL
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualACL))
 	assert.EqualValues(t, expectedACL, actualACL)
 }
@@ -321,8 +320,8 @@ func TestClient_ACL(t *testing.T) {
 	client, server := NewTestHarness(t)
 
 	server.ResponseCode = http.StatusOK
-	server.ResponseBody = &tsclient.ACL{
-		ACLs: []tsclient.ACLEntry{
+	server.ResponseBody = &ACL{
+		ACLs: []ACLEntry{
 			{
 				Action: "accept",
 				Ports:  []string{"*:*"},
@@ -342,7 +341,7 @@ func TestClient_ACL(t *testing.T) {
 				"user2@example.com",
 			},
 		},
-		Tests: []tsclient.ACLTest{
+		Tests: []ACLTest{
 			{
 				User:  "user1@example.com",
 				Allow: []string{"example-host-1:22", "example-host-2:80"},
@@ -374,7 +373,7 @@ func TestClient_RawACL(t *testing.T) {
 	server.ResponseBody = huJSONACL
 	server.ResponseHeader.Add("ETag", "myetag")
 
-	expectedRawACL := &tsclient.RawACL{
+	expectedRawACL := &RawACL{
 		HuJSON: string(huJSONACL),
 		ETag:   "myetag",
 	}

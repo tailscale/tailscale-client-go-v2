@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 func TestClient_DNSNameservers(t *testing.T) {
@@ -36,7 +35,7 @@ func TestClient_DNSPreferences(t *testing.T) {
 
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
-	server.ResponseBody = &tsclient.DNSPreferences{
+	server.ResponseBody = &DNSPreferences{
 		MagicDNS: true,
 	}
 
@@ -72,7 +71,7 @@ func TestClient_SplitDNS(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expectedNameservers := tsclient.SplitDNSResponse{
+	expectedNameservers := SplitDNSResponse{
 		"example.com": {"1.1.1.1", "1.2.3.4"},
 	}
 
@@ -107,7 +106,7 @@ func TestClient_SetDNSPreferences(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	preferences := tsclient.DNSPreferences{
+	preferences := DNSPreferences{
 		MagicDNS: true,
 	}
 
@@ -115,7 +114,7 @@ func TestClient_SetDNSPreferences(t *testing.T) {
 	assert.Equal(t, http.MethodPost, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/dns/preferences", server.Path)
 
-	var body tsclient.DNSPreferences
+	var body DNSPreferences
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &body))
 	assert.EqualValues(t, preferences, body)
 }
@@ -144,11 +143,11 @@ func TestClient_UpdateSplitDNS(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 
 	nameservers := []string{"1.1.2.1", "3.3.3.4"}
-	request := tsclient.SplitDNSRequest{
+	request := SplitDNSRequest{
 		"example.com": nameservers,
 	}
 
-	expectedNameservers := tsclient.SplitDNSResponse{
+	expectedNameservers := SplitDNSResponse{
 		"example.com": nameservers,
 	}
 	server.ResponseBody = expectedNameservers
@@ -158,7 +157,7 @@ func TestClient_UpdateSplitDNS(t *testing.T) {
 	assert.Equal(t, http.MethodPatch, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/dns/split-dns", server.Path)
 
-	body := make(tsclient.SplitDNSResponse)
+	body := make(SplitDNSResponse)
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &body))
 	assert.EqualValues(t, nameservers, body["example.com"])
 	assert.EqualValues(t, expectedNameservers, resp)
@@ -171,7 +170,7 @@ func TestClient_SetSplitDNS(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 
 	nameservers := []string{"1.1.2.1", "3.3.3.4"}
-	request := tsclient.SplitDNSRequest{
+	request := SplitDNSRequest{
 		"example.com": nameservers,
 	}
 
@@ -179,7 +178,7 @@ func TestClient_SetSplitDNS(t *testing.T) {
 	assert.Equal(t, http.MethodPut, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/dns/split-dns", server.Path)
 
-	body := make(tsclient.SplitDNSResponse)
+	body := make(SplitDNSResponse)
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &body))
 	assert.EqualValues(t, nameservers, body["example.com"])
 }

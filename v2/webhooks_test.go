@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 func TestClient_CreateWebhook(t *testing.T) {
@@ -19,14 +18,14 @@ func TestClient_CreateWebhook(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	req := tsclient.CreateWebhookRequest{
+	req := CreateWebhookRequest{
 		EndpointURL:   "https://example.com/my/endpoint",
-		ProviderType:  tsclient.WebhookDiscordProviderType,
-		Subscriptions: []tsclient.WebhookSubscriptionType{tsclient.WebhookNodeCreated, tsclient.WebhookNodeApproved},
+		ProviderType:  WebhookDiscordProviderType,
+		Subscriptions: []WebhookSubscriptionType{WebhookNodeCreated, WebhookNodeApproved},
 	}
 
 	expectedSecret := "my-secret"
-	expectedWebhook := &tsclient.Webhook{
+	expectedWebhook := &Webhook{
 		EndpointID:       "12345",
 		EndpointURL:      req.EndpointURL,
 		ProviderType:     req.ProviderType,
@@ -51,7 +50,7 @@ func TestClient_Webhooks(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expectedWebhooks := map[string][]tsclient.Webhook{
+	expectedWebhooks := map[string][]Webhook{
 		"webhooks": {
 			{
 				EndpointID:       "12345",
@@ -60,7 +59,7 @@ func TestClient_Webhooks(t *testing.T) {
 				CreatorLoginName: "pretend@example.com",
 				Created:          time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
 				LastModified:     time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
-				Subscriptions:    []tsclient.WebhookSubscriptionType{tsclient.WebhookNodeCreated, tsclient.WebhookNodeApproved},
+				Subscriptions:    []WebhookSubscriptionType{WebhookNodeCreated, WebhookNodeApproved},
 			},
 			{
 				EndpointID:       "54321",
@@ -69,7 +68,7 @@ func TestClient_Webhooks(t *testing.T) {
 				CreatorLoginName: "pretend2@example.com",
 				Created:          time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
 				LastModified:     time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
-				Subscriptions:    []tsclient.WebhookSubscriptionType{tsclient.WebhookNodeApproved},
+				Subscriptions:    []WebhookSubscriptionType{WebhookNodeApproved},
 			},
 		},
 	}
@@ -88,14 +87,14 @@ func TestClient_Webhook(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expectedWebhook := &tsclient.Webhook{
+	expectedWebhook := &Webhook{
 		EndpointID:       "54321",
 		EndpointURL:      "https://example.com/my/endpoint/other",
 		ProviderType:     "slack",
 		CreatorLoginName: "pretend2@example.com",
 		Created:          time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
 		LastModified:     time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
-		Subscriptions:    []tsclient.WebhookSubscriptionType{tsclient.WebhookNodeApproved},
+		Subscriptions:    []WebhookSubscriptionType{WebhookNodeApproved},
 	}
 	server.ResponseBody = expectedWebhook
 
@@ -112,9 +111,9 @@ func TestClient_UpdateWebhook(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	subscriptions := []tsclient.WebhookSubscriptionType{tsclient.WebhookNodeCreated, tsclient.WebhookNodeApproved, tsclient.WebhookNodeNeedsApproval}
+	subscriptions := []WebhookSubscriptionType{WebhookNodeCreated, WebhookNodeApproved, WebhookNodeNeedsApproval}
 
-	expectedWebhook := &tsclient.Webhook{
+	expectedWebhook := &Webhook{
 		EndpointID:       "54321",
 		EndpointURL:      "https://example.com/my/endpoint/other",
 		ProviderType:     "slack",
@@ -163,14 +162,14 @@ func TestClient_RotateWebhookSecret(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 
 	expectedSecret := "my-new-secret"
-	expectedWebhook := &tsclient.Webhook{
+	expectedWebhook := &Webhook{
 		EndpointID:       "54321",
 		EndpointURL:      "https://example.com/my/endpoint/other",
 		ProviderType:     "slack",
 		CreatorLoginName: "pretend2@example.com",
 		Created:          time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
 		LastModified:     time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC),
-		Subscriptions:    []tsclient.WebhookSubscriptionType{tsclient.WebhookNodeApproved},
+		Subscriptions:    []WebhookSubscriptionType{WebhookNodeApproved},
 		Secret:           &expectedSecret,
 	}
 	server.ResponseBody = expectedWebhook

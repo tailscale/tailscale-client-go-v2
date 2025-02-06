@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 func TestClient_CreateKey(t *testing.T) {
@@ -20,13 +19,13 @@ func TestClient_CreateKey(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	capabilities := tsclient.KeyCapabilities{}
+	capabilities := KeyCapabilities{}
 	capabilities.Devices.Create.Ephemeral = true
 	capabilities.Devices.Create.Reusable = true
 	capabilities.Devices.Create.Preauthorized = true
 	capabilities.Devices.Create.Tags = []string{"test:test"}
 
-	expected := &tsclient.Key{
+	expected := &Key{
 		ID:           "test",
 		Key:          "thisisatestkey",
 		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -37,7 +36,7 @@ func TestClient_CreateKey(t *testing.T) {
 
 	server.ResponseBody = expected
 
-	actual, err := client.Keys().Create(context.Background(), tsclient.CreateKeyRequest{
+	actual, err := client.Keys().Create(context.Background(), CreateKeyRequest{
 		Capabilities: capabilities,
 	})
 	assert.NoError(t, err)
@@ -45,7 +44,7 @@ func TestClient_CreateKey(t *testing.T) {
 	assert.Equal(t, http.MethodPost, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/keys", server.Path)
 
-	var actualReq tsclient.CreateKeyRequest
+	var actualReq CreateKeyRequest
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
 	assert.EqualValues(t, capabilities, actualReq.Capabilities)
 	assert.EqualValues(t, 0, actualReq.ExpirySeconds)
@@ -58,13 +57,13 @@ func TestClient_CreateKeyWithExpirySeconds(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	capabilities := tsclient.KeyCapabilities{}
+	capabilities := KeyCapabilities{}
 	capabilities.Devices.Create.Ephemeral = true
 	capabilities.Devices.Create.Reusable = true
 	capabilities.Devices.Create.Preauthorized = true
 	capabilities.Devices.Create.Tags = []string{"test:test"}
 
-	expected := &tsclient.Key{
+	expected := &Key{
 		ID:           "test",
 		Key:          "thisisatestkey",
 		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -75,7 +74,7 @@ func TestClient_CreateKeyWithExpirySeconds(t *testing.T) {
 
 	server.ResponseBody = expected
 
-	actual, err := client.Keys().Create(context.Background(), tsclient.CreateKeyRequest{
+	actual, err := client.Keys().Create(context.Background(), CreateKeyRequest{
 		Capabilities:  capabilities,
 		ExpirySeconds: 1440,
 	})
@@ -84,7 +83,7 @@ func TestClient_CreateKeyWithExpirySeconds(t *testing.T) {
 	assert.Equal(t, http.MethodPost, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/keys", server.Path)
 
-	var actualReq tsclient.CreateKeyRequest
+	var actualReq CreateKeyRequest
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
 	assert.EqualValues(t, capabilities, actualReq.Capabilities)
 	assert.EqualValues(t, 1440, actualReq.ExpirySeconds)
@@ -97,13 +96,13 @@ func TestClient_CreateKeyWithDescription(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	capabilities := tsclient.KeyCapabilities{}
+	capabilities := KeyCapabilities{}
 	capabilities.Devices.Create.Ephemeral = true
 	capabilities.Devices.Create.Reusable = true
 	capabilities.Devices.Create.Preauthorized = true
 	capabilities.Devices.Create.Tags = []string{"test:test"}
 
-	expected := &tsclient.Key{
+	expected := &Key{
 		ID:           "test",
 		Key:          "thisisatestkey",
 		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -114,7 +113,7 @@ func TestClient_CreateKeyWithDescription(t *testing.T) {
 
 	server.ResponseBody = expected
 
-	actual, err := client.Keys().Create(context.Background(), tsclient.CreateKeyRequest{
+	actual, err := client.Keys().Create(context.Background(), CreateKeyRequest{
 		Capabilities: capabilities,
 		Description:  "key description",
 	})
@@ -123,7 +122,7 @@ func TestClient_CreateKeyWithDescription(t *testing.T) {
 	assert.Equal(t, http.MethodPost, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/keys", server.Path)
 
-	var actualReq tsclient.CreateKeyRequest
+	var actualReq CreateKeyRequest
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
 	assert.EqualValues(t, capabilities, actualReq.Capabilities)
 	assert.EqualValues(t, 0, actualReq.ExpirySeconds)
@@ -136,13 +135,13 @@ func TestClient_GetKey(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	capabilities := tsclient.KeyCapabilities{}
+	capabilities := KeyCapabilities{}
 	capabilities.Devices.Create.Ephemeral = true
 	capabilities.Devices.Create.Reusable = true
 	capabilities.Devices.Create.Preauthorized = true
 	capabilities.Devices.Create.Tags = []string{"test:test"}
 
-	expected := &tsclient.Key{
+	expected := &Key{
 		ID:           "test",
 		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -165,12 +164,12 @@ func TestClient_Keys(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expected := []tsclient.Key{
+	expected := []Key{
 		{ID: "key-a"},
 		{ID: "key-b"},
 	}
 
-	server.ResponseBody = map[string][]tsclient.Key{
+	server.ResponseBody = map[string][]Key{
 		"keys": expected,
 	}
 

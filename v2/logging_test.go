@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-package tsclient_test
+package tailscale
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	tsclient "github.com/tailscale/tailscale-client-go/v2"
 )
 
 func TestClient_LogstreamConfiguration(t *testing.T) {
@@ -19,10 +18,10 @@ func TestClient_LogstreamConfiguration(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expectedLogstream := &tsclient.LogstreamConfiguration{}
+	expectedLogstream := &LogstreamConfiguration{}
 	server.ResponseBody = expectedLogstream
 
-	actualWebhook, err := client.Logging().LogstreamConfiguration(context.Background(), tsclient.LogTypeConfig)
+	actualWebhook, err := client.Logging().LogstreamConfiguration(context.Background(), LogTypeConfig)
 	assert.NoError(t, err)
 	assert.Equal(t, http.MethodGet, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/logging/configuration/stream", server.Path)
@@ -35,15 +34,15 @@ func TestClient_SetLogstreamConfiguration(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	logstreamRequest := tsclient.SetLogstreamConfigurationRequest{
-		DestinationType:      tsclient.LogstreamCriblEndpoint,
+	logstreamRequest := SetLogstreamConfigurationRequest{
+		DestinationType:      LogstreamCriblEndpoint,
 		URL:                  "http://example.com",
 		User:                 "my-user",
 		Token:                "my-token",
 		S3Bucket:             "my-bucket",
 		S3Region:             "us-west-2",
 		S3KeyPrefix:          "logs/",
-		S3AuthenticationType: tsclient.S3AccessKeyAuthentication,
+		S3AuthenticationType: S3AccessKeyAuthentication,
 		S3AccessKeyID:        "my-access-key-id",
 		S3SecretAccessKey:    "my-secret-access-key",
 		S3RoleARN:            "my-role-arn",
@@ -51,11 +50,11 @@ func TestClient_SetLogstreamConfiguration(t *testing.T) {
 	}
 	server.ResponseBody = nil
 
-	err := client.Logging().SetLogstreamConfiguration(context.Background(), tsclient.LogTypeNetwork, logstreamRequest)
+	err := client.Logging().SetLogstreamConfiguration(context.Background(), LogTypeNetwork, logstreamRequest)
 	assert.NoError(t, err)
 	assert.Equal(t, http.MethodPut, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/logging/network/stream", server.Path)
-	var receivedRequest tsclient.SetLogstreamConfigurationRequest
+	var receivedRequest SetLogstreamConfigurationRequest
 	err = json.Unmarshal(server.Body.Bytes(), &receivedRequest)
 	assert.NoError(t, err)
 	assert.EqualValues(t, logstreamRequest, receivedRequest)
@@ -67,7 +66,7 @@ func TestClient_DeleteLogstream(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	err := client.Logging().DeleteLogstreamConfiguration(context.Background(), tsclient.LogTypeConfig)
+	err := client.Logging().DeleteLogstreamConfiguration(context.Background(), LogTypeConfig)
 	assert.NoError(t, err)
 	assert.Equal(t, http.MethodDelete, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/logging/configuration/stream", server.Path)
@@ -79,7 +78,7 @@ func TestClient_CreateOrGetAwsExternalId(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	wantExternalID := &tsclient.AWSExternalID{
+	wantExternalID := &AWSExternalID{
 		ExternalID:            "external-id",
 		TailscaleAWSAccountID: "account-id",
 	}

@@ -1,10 +1,10 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-// Package tsclient contains a basic implementation of a client for the Tailscale HTTP API.
+// package tailscale contains a basic implementation of a client for the Tailscale HTTP API.
 //
 // Documentation is at https://tailscale.com/api
-package tsclient
+package tailscale
 
 import (
 	"bytes"
