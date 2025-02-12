@@ -7,7 +7,47 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 )
+
+// CheckPeriodAlways is a magic value corresponding to the [SSHCheckPeriod]
+// "always". It indicates that re-authorization is required on every login.
+const CheckPeriodAlways SSHCheckPeriod = -1
+
+const checkPeriodAlways = "always"
+
+// SSHCheckPeriod wraps a [time.Duration], allowing it to be JSON marshalled as
+// a string like "20h" rather than a numeric value. It also supports the
+// special value "always", which forces a check on every connection.
+type SSHCheckPeriod time.Duration
+
+func (d SSHCheckPeriod) String() string {
+	return time.Duration(d).String()
+}
+
+func (d SSHCheckPeriod) MarshalText() ([]byte, error) {
+	if d == CheckPeriodAlways {
+		return []byte(checkPeriodAlways), nil
+	}
+	return []byte(d.String()), nil
+}
+
+func (d *SSHCheckPeriod) UnmarshalText(b []byte) error {
+	text := string(b)
+	if text == checkPeriodAlways {
+		*d = SSHCheckPeriod(CheckPeriodAlways)
+		return nil
+	}
+	if text == "" {
+		text = "0s"
+	}
+	pd, err := time.ParseDuration(text)
+	if err != nil {
+		return err
+	}
+	*d = SSHCheckPeriod(pd)
+	return nil
+}
 
 // PolicyFileResource provides access to https://tailscale.com/api#tag/policyfile.
 type PolicyFileResource struct {
@@ -98,13 +138,13 @@ type ACLDERPNode struct {
 }
 
 type ACLSSH struct {
-	Action          string   `json:"action,omitempty" hujson:"Action,omitempty"`
-	Users           []string `json:"users,omitempty" hujson:"Users,omitempty"`
-	Source          []string `json:"src,omitempty" hujson:"Src,omitempty"`
-	Destination     []string `json:"dst,omitempty" hujson:"Dst,omitempty"`
-	CheckPeriod     Duration `json:"checkPeriod,omitempty" hujson:"CheckPeriod,omitempty"`
-	Recorder        []string `json:"recorder,omitempty" hujson:"Recorder,omitempty"`
-	EnforceRecorder bool     `json:"enforceRecorder,omitempty" hujson:"EnforceRecorder,omitempty"`
+	Action          string         `json:"action,omitempty" hujson:"Action,omitempty"`
+	Users           []string       `json:"users,omitempty" hujson:"Users,omitempty"`
+	Source          []string       `json:"src,omitempty" hujson:"Src,omitempty"`
+	Destination     []string       `json:"dst,omitempty" hujson:"Dst,omitempty"`
+	CheckPeriod     SSHCheckPeriod `json:"checkPeriod,omitempty" hujson:"CheckPeriod,omitempty"`
+	Recorder        []string       `json:"recorder,omitempty" hujson:"Recorder,omitempty"`
+	EnforceRecorder bool           `json:"enforceRecorder,omitempty" hujson:"EnforceRecorder,omitempty"`
 }
 
 type NodeAttrGrant struct {

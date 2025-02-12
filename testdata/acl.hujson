@@ -58,5 +58,12 @@
       "users": ["root", "autogroup:nonroot"],
       "checkPeriod": "20h"
     },
+    {
+      "action": "accept",
+      "src": ["tag:logging2"],
+      "dst": ["tag:prod2"],
+      "users": ["root", "autogroup:nonroot"],
+      "checkPeriod": "always"
+    },
   ]
 }

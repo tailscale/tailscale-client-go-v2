@@ -114,7 +114,7 @@ func TestACL_Unmarshal(t *testing.T) {
 						Source:      []string{"tag:logging"},
 						Destination: []string{"tag:prod"},
 						Users:       []string{"root", "autogroup:nonroot"},
-						CheckPeriod: Duration(time.Hour * 20),
+						CheckPeriod: SSHCheckPeriod(time.Hour * 20),
 					},
 				},
 			},
@@ -194,7 +194,14 @@ func TestACL_Unmarshal(t *testing.T) {
 						Source:      []string{"tag:logging"},
 						Destination: []string{"tag:prod"},
 						Users:       []string{"root", "autogroup:nonroot"},
-						CheckPeriod: Duration(time.Hour * 20),
+						CheckPeriod: SSHCheckPeriod(time.Hour * 20),
+					},
+					{
+						Action:      "accept",
+						Source:      []string{"tag:logging2"},
+						Destination: []string{"tag:prod2"},
+						Users:       []string{"root", "autogroup:nonroot"},
+						CheckPeriod: CheckPeriodAlways,
 					},
 				},
 				Tests: []ACLTest{
@@ -275,6 +282,7 @@ func TestClient_SetACL(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualACL))
 	assert.EqualValues(t, expectedACL, actualACL)
 }
+
 func TestClient_SetACL_HuJSON(t *testing.T) {
 	t.Parallel()
 
@@ -383,4 +391,36 @@ func TestClient_RawACL(t *testing.T) {
 	assert.EqualValues(t, http.MethodGet, server.Method)
 	assert.EqualValues(t, "application/hujson", server.Header.Get("Accept"))
 	assert.EqualValues(t, "/api/v2/tailnet/example.com/acl", server.Path)
+}
+
+func TestSSHCheckPeriod(t *testing.T) {
+	testCases := []struct {
+		inStr  string
+		period SSHCheckPeriod
+		outStr string
+	}{
+		{"1h", SSHCheckPeriod(1 * time.Hour), "1h0m0s"},
+		{"", 0, "0s"},
+		{checkPeriodAlways, CheckPeriodAlways, checkPeriodAlways},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.inStr, func(t *testing.T) {
+			var got SSHCheckPeriod
+			if err := got.UnmarshalText([]byte(tc.inStr)); err != nil {
+				t.Fatalf("failed to marshal: %s", err)
+			}
+			if got != tc.period {
+				t.Fatalf("want period %s, got period %s", tc.period, got)
+			}
+			gotBytes, err := got.MarshalText()
+			if err != nil {
+				t.Fatalf("failed to marshal: %s", err)
+			}
+			gotStr := string(gotBytes)
+			if gotStr != tc.outStr {
+				t.Fatalf("want string %q, got string %q", tc.outStr, gotStr)
+			}
+		})
+	}
 }

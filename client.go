@@ -369,31 +369,6 @@ func ErrorData(err error) []APIErrorData {
 	return nil
 }
 
-// Duration wraps a [time.Duration], allowing it to be JSON marshalled as a string like "20h" rather than
-// a numeric value.
-type Duration time.Duration
-
-func (d Duration) String() string {
-	return time.Duration(d).String()
-}
-
-func (d Duration) MarshalText() ([]byte, error) {
-	return []byte(d.String()), nil
-}
-
-func (d *Duration) UnmarshalText(b []byte) error {
-	text := string(b)
-	if text == "" {
-		text = "0s"
-	}
-	pd, err := time.ParseDuration(text)
-	if err != nil {
-		return err
-	}
-	*d = Duration(pd)
-	return nil
-}
-
 // PointerTo returns a pointer to the given value.
 // Pointers are used in PATCH requests to distinguish between specified and unspecified values.
 func PointerTo[T any](value T) *T {
