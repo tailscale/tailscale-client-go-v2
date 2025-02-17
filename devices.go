@@ -47,7 +47,8 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 type Device struct {
 	Addresses                 []string `json:"addresses"`
 	Name                      string   `json:"name"`
-	ID                        string   `json:"id"`
+	ID                        string   `json:"id"`     // The legacy identifier for a device. Use NodeId instead.
+	NodeID                    string   `json:"nodeId"` // The preferred identifier for a device.
 	Authorized                bool     `json:"authorized"`
 	User                      string   `json:"user"`
 	Tags                      []string `json:"tags"`
@@ -79,6 +80,8 @@ type DevicePostureAttributeRequest struct {
 }
 
 // Get gets the [Device] identified by deviceID.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) Get(ctx context.Context, deviceID string) (*Device, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildURL("device", deviceID))
 	if err != nil {
@@ -89,6 +92,8 @@ func (dr *DevicesResource) Get(ctx context.Context, deviceID string) (*Device, e
 }
 
 // GetPostureAttributes retrieves the posture attributes of the device identified by deviceID.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) GetPostureAttributes(ctx context.Context, deviceID string) (*DevicePostureAttributes, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildURL("device", deviceID, "attributes"))
 	if err != nil {
@@ -99,6 +104,8 @@ func (dr *DevicesResource) GetPostureAttributes(ctx context.Context, deviceID st
 }
 
 // SetPostureAttribute sets the posture attribute of the device identified by deviceID.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) SetPostureAttribute(ctx context.Context, deviceID, attributeKey string, request DevicePostureAttributeRequest) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildURL("device", deviceID, "attributes", attributeKey), requestBody(request))
 	if err != nil {
@@ -125,6 +132,8 @@ func (dr *DevicesResource) List(ctx context.Context) ([]Device, error) {
 }
 
 // SetAuthorized marks the specified device as authorized or not.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) SetAuthorized(ctx context.Context, deviceID string, authorized bool) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildURL("device", deviceID, "authorized"), requestBody(map[string]bool{
 		"authorized": authorized,
@@ -137,6 +146,8 @@ func (dr *DevicesResource) SetAuthorized(ctx context.Context, deviceID string, a
 }
 
 // Delete deletes the device identified by deviceID.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) Delete(ctx context.Context, deviceID string) error {
 	req, err := dr.buildRequest(ctx, http.MethodDelete, dr.buildURL("device", deviceID))
 	if err != nil {
@@ -147,6 +158,8 @@ func (dr *DevicesResource) Delete(ctx context.Context, deviceID string) error {
 }
 
 // SetName updates the name of the device identified by deviceID.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) SetName(ctx context.Context, deviceID, name string) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildURL("device", deviceID, "name"), requestBody(map[string]string{
 		"name": name,
@@ -159,6 +172,8 @@ func (dr *DevicesResource) SetName(ctx context.Context, deviceID, name string) e
 }
 
 // SetTags updates the tags of the device identified by deviceID.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) SetTags(ctx context.Context, deviceID string, tags []string) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildURL("device", deviceID, "tags"), requestBody(map[string][]string{
 		"tags": tags,
@@ -177,6 +192,8 @@ type DeviceKey struct {
 }
 
 // SetKey updates the properties of a device's key.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) SetKey(ctx context.Context, deviceID string, key DeviceKey) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildURL("device", deviceID, "key"), requestBody(key))
 	if err != nil {
@@ -187,6 +204,8 @@ func (dr *DevicesResource) SetKey(ctx context.Context, deviceID string, key Devi
 }
 
 // SetDeviceIPv4Address sets the Tailscale IPv4 address of the device.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) SetIPv4Address(ctx context.Context, deviceID string, ipv4Address string) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildURL("device", deviceID, "ip"), requestBody(map[string]string{
 		"ipv4": ipv4Address,
@@ -200,6 +219,8 @@ func (dr *DevicesResource) SetIPv4Address(ctx context.Context, deviceID string, 
 
 // SetSubnetRoutes sets which subnet routes are enabled to be routed by a device by replacing the existing list
 // of subnet routes with the supplied routes. Routes can be enabled without a device advertising them (e.g. for preauth).
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) SetSubnetRoutes(ctx context.Context, deviceID string, routes []string) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildURL("device", deviceID, "routes"), requestBody(map[string][]string{
 		"routes": routes,
@@ -214,6 +235,8 @@ func (dr *DevicesResource) SetSubnetRoutes(ctx context.Context, deviceID string,
 // SubnetRoutes Retrieves the list of subnet routes that a device is advertising, as well as those that are
 // enabled for it. Enabled routes are not necessarily advertised (e.g. for pre-enabling), and likewise, advertised
 // routes are not necessarily enabled.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) SubnetRoutes(ctx context.Context, deviceID string) (*DeviceRoutes, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildURL("device", deviceID, "routes"))
 	if err != nil {
