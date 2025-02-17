@@ -43,7 +43,8 @@ func TestClient_Devices_Get(t *testing.T) {
 	expectedDevice := &Device{
 		Addresses:         []string{"127.0.0.1"},
 		Name:              "test",
-		ID:                "testid",
+		ID:                "12345",
+		NodeID:            "nTESTJ31",
 		Authorized:        true,
 		KeyExpiryDisabled: true,
 		User:              "test@example.com",
@@ -69,11 +70,21 @@ func TestClient_Devices_Get(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 	server.ResponseBody = expectedDevice
 
-	actualDevice, err := client.Devices().Get(context.Background(), "testid")
-	assert.NoError(t, err)
-	assert.Equal(t, http.MethodGet, server.Method)
-	assert.Equal(t, "/api/v2/device/testid", server.Path)
-	assert.EqualValues(t, expectedDevice, actualDevice)
+	t.Run("using legacy id", func(t *testing.T) {
+		actualDevice, err := client.Devices().Get(context.Background(), "12345")
+		assert.NoError(t, err)
+		assert.Equal(t, http.MethodGet, server.Method)
+		assert.Equal(t, "/api/v2/device/12345", server.Path)
+		assert.EqualValues(t, expectedDevice, actualDevice)
+	})
+
+	t.Run("using preferred nodeId", func(t *testing.T) {
+		actualDevice, err := client.Devices().Get(context.Background(), "nTESTJ31")
+		assert.NoError(t, err)
+		assert.Equal(t, http.MethodGet, server.Method)
+		assert.Equal(t, "/api/v2/device/nTESTJ31", server.Path)
+		assert.EqualValues(t, expectedDevice, actualDevice)
+	})
 }
 
 func TestClient_Devices_GetPostureAttributes(t *testing.T) {
@@ -97,10 +108,10 @@ func TestClient_Devices_GetPostureAttributes(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 	server.ResponseBody = expectedAttributes
 
-	actualAttributes, err := client.Devices().GetPostureAttributes(context.Background(), "testid")
+	actualAttributes, err := client.Devices().GetPostureAttributes(context.Background(), "12345")
 	assert.NoError(t, err)
 	assert.Equal(t, http.MethodGet, server.Method)
-	assert.Equal(t, "/api/v2/device/testid/attributes", server.Path)
+	assert.Equal(t, "/api/v2/device/12345/attributes", server.Path)
 
 	assert.EqualValues(t, expectedAttributes, actualAttributes)
 }
@@ -171,6 +182,7 @@ func TestDevices_Unmarshal(t *testing.T) {
 					},
 					Hostname:          "hello",
 					ID:                "50052",
+					NodeID:            "nTESTJ30",
 					IsExternal:        true,
 					KeyExpiryDisabled: true,
 					LastSeen: Time{
@@ -196,6 +208,7 @@ func TestDevices_Unmarshal(t *testing.T) {
 					},
 					Hostname:          "foo",
 					ID:                "50053",
+					NodeID:            "nTESTJ31",
 					IsExternal:        false,
 					KeyExpiryDisabled: true,
 					LastSeen: Time{
