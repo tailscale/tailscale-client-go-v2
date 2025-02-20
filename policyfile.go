@@ -221,6 +221,32 @@ func (pr *PolicyFileResource) Set(ctx context.Context, acl any, etag string) err
 	return pr.do(req, nil)
 }
 
+// Set sets the [ACL] for the tailnet and returns the resulting [ACL].
+// etag is an optional value that, if supplied, will be used in the "If-Match" HTTP request header.
+func (pr *PolicyFileResource) SetAndGet(ctx context.Context, acl ACL, etag string) (*ACL, error) {
+	headers := make(map[string]string)
+	if etag != "" {
+		headers["If-Match"] = fmt.Sprintf("%q", etag)
+	}
+
+	reqOpts := []requestOption{
+		requestHeaders(headers),
+		requestBody(acl),
+	}
+
+	req, err := pr.buildRequest(ctx, http.MethodPost, pr.buildTailnetURL("acl"), reqOpts...)
+	if err != nil {
+		return nil, err
+	}
+
+	out, header, err := bodyWithResponseHeader[ACL](pr, req)
+	if err != nil {
+		return nil, err
+	}
+	out.ETag = header.Get("Etag")
+	return out, nil
+}
+
 // Validate validates the provided ACL via the API. acl can either be an [ACL], or a HuJSON string.
 func (pr *PolicyFileResource) Validate(ctx context.Context, acl any) error {
 	reqOpts := []requestOption{
