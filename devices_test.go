@@ -44,6 +44,7 @@ func TestClient_Devices_Get(t *testing.T) {
 		Addresses:         []string{"127.0.0.1"},
 		Name:              "test",
 		ID:                "testid",
+		NodeID:            "testNodeID",
 		Authorized:        true,
 		KeyExpiryDisabled: true,
 		User:              "test@example.com",
@@ -138,6 +139,7 @@ func TestClient_Devices_List(t *testing.T) {
 				Addresses:         []string{"127.0.0.1"},
 				Name:              "test",
 				ID:                "test",
+				NodeID:            "testNodeID",
 				Authorized:        true,
 				KeyExpiryDisabled: true,
 				User:              "test@example.com",
@@ -220,6 +222,7 @@ func TestDevices_Unmarshal(t *testing.T) {
 					},
 					Hostname:          "hello",
 					ID:                "50052",
+					NodeID:            "nodeID50052",
 					IsExternal:        true,
 					KeyExpiryDisabled: true,
 					LastSeen: Time{
@@ -245,6 +248,7 @@ func TestDevices_Unmarshal(t *testing.T) {
 					},
 					Hostname:          "foo",
 					ID:                "50053",
+					NodeID:            "nodeID50053",
 					IsExternal:        false,
 					KeyExpiryDisabled: true,
 					LastSeen: Time{

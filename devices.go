@@ -62,6 +62,7 @@ type Device struct {
 	Addresses                 []string `json:"addresses"`
 	Name                      string   `json:"name"`
 	ID                        string   `json:"id"`
+	NodeID                    string   `json:"nodeId"`
 	Authorized                bool     `json:"authorized"`
 	User                      string   `json:"user"`
 	Tags                      []string `json:"tags"`
