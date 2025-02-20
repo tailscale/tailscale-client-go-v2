@@ -64,6 +64,30 @@ func TestClient_Devices_Get(t *testing.T) {
 		TailnetLockError:          "test error",
 		TailnetLockKey:            "tlpub:test",
 		UpdateAvailable:           true,
+		AdvertisedRoutes:          []string{"127.0.0.1", "127.0.0.2"},
+		EnabledRoutes:             []string{"127.0.0.1"},
+		ClientConnectivity: &ClientConnectivity{
+			Endpoints: []string{"199.9.14.201:59128", "192.68.0.21:59128"},
+			DERP:      "New York City",
+			DERPLatency: map[string]DERPRegion{
+				"Dallas": {
+					LatencyMilliseconds: 60.463043,
+				},
+				"New York City": {
+					Preferred:           true,
+					LatencyMilliseconds: 31.323811,
+				},
+			},
+			MappingVariesByDestIP: true,
+			ClientSupports: ClientSupports{
+				HairPinning: false,
+				IPV6:        false,
+				PCP:         false,
+				PMP:         false,
+				UDP:         false,
+				UPNP:        false,
+			},
+		},
 	}
 
 	client, server := NewTestHarness(t)
@@ -142,6 +166,30 @@ func TestClient_Devices_List(t *testing.T) {
 				NodeKey:                   "nodekey:test",
 				OS:                        "windows",
 				UpdateAvailable:           true,
+				AdvertisedRoutes:          []string{"127.0.0.1", "127.0.0.2"},
+				EnabledRoutes:             []string{"127.0.0.1"},
+				ClientConnectivity: &ClientConnectivity{
+					Endpoints: []string{"199.9.14.201:59128", "192.68.0.21:59128"},
+					DERP:      "New York City",
+					DERPLatency: map[string]DERPRegion{
+						"Dallas": {
+							LatencyMilliseconds: 60.463043,
+						},
+						"New York City": {
+							Preferred:           true,
+							LatencyMilliseconds: 31.323811,
+						},
+					},
+					MappingVariesByDestIP: true,
+					ClientSupports: ClientSupports{
+						HairPinning: false,
+						IPV6:        false,
+						PCP:         false,
+						PMP:         false,
+						UDP:         false,
+						UPNP:        false,
+					},
+				},
 			},
 		},
 	}
@@ -150,10 +198,11 @@ func TestClient_Devices_List(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 	server.ResponseBody = expectedDevices
 
-	actualDevices, err := client.Devices().List(context.Background())
+	actualDevices, err := client.Devices().ListWithAllFields(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, http.MethodGet, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/devices", server.Path)
+	assert.Equal(t, "all", server.Query.Get("fields"))
 	assert.EqualValues(t, expectedDevices["devices"], actualDevices)
 }
 
