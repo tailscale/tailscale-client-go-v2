@@ -283,6 +283,62 @@ func TestClient_SetACL(t *testing.T) {
 	assert.EqualValues(t, expectedACL, actualACL)
 }
 
+func TestClient_SetAndGetACL(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+	server.ResponseHeader.Set("ETag", "abcdefg")
+	in := ACL{
+		ACLs: []ACLEntry{
+			{
+				Action: "accept",
+				Ports:  []string{"*:*"},
+				Users:  []string{"*"},
+			},
+		},
+		TagOwners: map[string][]string{
+			"tag:example": {"group:example"},
+		},
+		Hosts: map[string]string{
+			"example-host-1": "100.100.100.100",
+			"example-host-2": "100.100.101.100/24",
+		},
+		Groups: map[string][]string{
+			"group:example": {
+				"user1@example.com",
+				"user2@example.com",
+			},
+		},
+		Tests: []ACLTest{
+			{
+				User:  "user1@example.com",
+				Allow: []string{"example-host-1:22", "example-host-2:80"},
+				Deny:  []string{"exapmle-host-2:100"},
+			},
+			{
+				User:  "user2@example.com",
+				Allow: []string{"100.60.3.4:22"},
+			},
+		},
+		ETag: "abcdefg",
+	}
+	server.ResponseBody = in
+
+	out, err := client.PolicyFile().SetAndGet(context.Background(), in, "abcdefg")
+	assert.NoError(t, err)
+	assert.Equal(t, http.MethodPost, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/acl", server.Path)
+	assert.Equal(t, `"abcdefg"`, server.Header.Get("If-Match"))
+	assert.EqualValues(t, "application/json", server.Header.Get("Content-Type"))
+	assert.EqualValues(t, &in, out)
+
+	var actualACL ACL
+	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualACL))
+	in.ETag = ""
+	assert.EqualValues(t, in, actualACL)
+}
+
 func TestClient_SetACL_HuJSON(t *testing.T) {
 	t.Parallel()
 
