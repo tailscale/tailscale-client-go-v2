@@ -44,6 +44,20 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type DERPRegion struct {
+	Preferred           bool    `json:"preferred,omitempty"`
+	LatencyMilliseconds float64 `json:"latencyMs"`
+}
+
+type ClientConnectivity struct {
+	Endpoints             []string `json:"endpoints"`
+	DERP                  string   `json:"derp"`
+	MappingVariesByDestIP bool     `json:"mappingVariesByDestIP"`
+	// DERPLatency is mapped by region name (e.g. "New York City", "Seattle").
+	DERPLatency    map[string]DERPRegion `json:"latency"`
+	ClientSupports map[string]bool       `json:"clientSupports"`
+}
+
 type Device struct {
 	Addresses                 []string `json:"addresses"`
 	Name                      string   `json:"name"`
@@ -65,6 +79,11 @@ type Device struct {
 	TailnetLockError          string   `json:"tailnetLockError"`
 	TailnetLockKey            string   `json:"tailnetLockKey"`
 	UpdateAvailable           bool     `json:"updateAvailable"`
+
+	// The below are only included in listings when querying `all` fields.
+	AdvertisedRoutes   []string            `json:"AdvertisedRoutes"`
+	EnabledRoutes      []string            `json:"enabledRoutes"`
+	ClientConnectivity *ClientConnectivity `json:"clientConnectivity"`
 }
 
 type DevicePostureAttributes struct {
@@ -108,11 +127,29 @@ func (dr *DevicesResource) SetPostureAttribute(ctx context.Context, deviceID, at
 	return dr.do(req, nil)
 }
 
-// List lists every [Device] in the tailnet.
+// ListWithAllFields lists every [Device] in the tailnet. Each [Device] in
+// the response will have all fields populated.
+func (dr *DevicesResource) ListWithAllFields(ctx context.Context) ([]Device, error) {
+	return dr.list(ctx, true)
+}
+
+// List lists every [Device] in the tailnet. The fields `EnabledRoutes`,
+// `AdvertisedRoutes` and `ClientConnectivity` will be omitted from the resulting
+// [Devices]. To get these fields, use `ListWithAllFields`.
 func (dr *DevicesResource) List(ctx context.Context) ([]Device, error) {
+	return dr.list(ctx, false)
+}
+
+func (dr *DevicesResource) list(ctx context.Context, all bool) ([]Device, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildTailnetURL("devices"))
 	if err != nil {
 		return nil, err
+	}
+
+	if all {
+		q := req.URL.Query()
+		q.Set("fields", "all")
+		req.URL.RawQuery = q.Encode()
 	}
 
 	m := make(map[string][]Device)
