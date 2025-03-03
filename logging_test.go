@@ -18,14 +18,27 @@ func TestClient_LogstreamConfiguration(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 
-	expectedLogstream := &LogstreamConfiguration{}
+	expectedLogstream := &LogstreamConfiguration{
+		DestinationType:      LogstreamCriblEndpoint,
+		URL:                  "http://example.com",
+		User:                 "my-user",
+		UploadPeriodMinutes:  5,
+		CompressionFormat:    CompressionFormatZstd,
+		S3Bucket:             "my-bucket",
+		S3Region:             "us-west-2",
+		S3KeyPrefix:          "logs/",
+		S3AuthenticationType: S3AccessKeyAuthentication,
+		S3AccessKeyID:        "my-access-key-id",
+		S3RoleARN:            "my-role-arn",
+		S3ExternalID:         "my-external-id",
+	}
 	server.ResponseBody = expectedLogstream
 
-	actualWebhook, err := client.Logging().LogstreamConfiguration(context.Background(), LogTypeConfig)
+	actualLogstream, err := client.Logging().LogstreamConfiguration(context.Background(), LogTypeConfig)
 	assert.NoError(t, err)
 	assert.Equal(t, http.MethodGet, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/logging/configuration/stream", server.Path)
-	assert.Equal(t, expectedLogstream, actualWebhook)
+	assert.Equal(t, expectedLogstream, actualLogstream)
 }
 
 func TestClient_SetLogstreamConfiguration(t *testing.T) {
@@ -39,6 +52,8 @@ func TestClient_SetLogstreamConfiguration(t *testing.T) {
 		URL:                  "http://example.com",
 		User:                 "my-user",
 		Token:                "my-token",
+		UploadPeriodMinutes:  5,
+		CompressionFormat:    CompressionFormatZstd,
 		S3Bucket:             "my-bucket",
 		S3Region:             "us-west-2",
 		S3KeyPrefix:          "logs/",
