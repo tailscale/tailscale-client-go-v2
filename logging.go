@@ -29,6 +29,12 @@ const (
 )
 
 const (
+	CompressionFormatNone CompressionFormat = "none"
+	CompressionFormatZstd CompressionFormat = "zstd"
+	CompressionFormatGzip CompressionFormat = "gzip"
+)
+
+const (
 	S3AccessKeyAuthentication S3AuthenticationType = "accesskey"
 	S3RoleARNAuthentication   S3AuthenticationType = "rolearn"
 )
@@ -39,6 +45,8 @@ type LogstreamConfiguration struct {
 	DestinationType      LogstreamEndpointType `json:"destinationType,omitempty"`
 	URL                  string                `json:"url,omitempty"`
 	User                 string                `json:"user,omitempty"`
+	UploadPeriodMinutes  int                   `json:"uploadPeriodMinutes,omitempty"`
+	CompressionFormat    CompressionFormat     `json:"compressionFormat,omitempty"`
 	S3Bucket             string                `json:"s3Bucket,omitempty"`
 	S3Region             string                `json:"s3Region,omitempty"`
 	S3KeyPrefix          string                `json:"s3KeyPrefix,omitempty"`
@@ -54,6 +62,8 @@ type SetLogstreamConfigurationRequest struct {
 	URL                  string                `json:"url,omitempty"`
 	User                 string                `json:"user,omitempty"`
 	Token                string                `json:"token,omitempty"`
+	UploadPeriodMinutes  int                   `json:"uploadPeriodMinutes,omitempty"`
+	CompressionFormat    CompressionFormat     `json:"compressionFormat,omitempty"`
 	S3Bucket             string                `json:"s3Bucket,omitempty"`
 	S3Region             string                `json:"s3Region,omitempty"`
 	S3KeyPrefix          string                `json:"s3KeyPrefix,omitempty"`
@@ -69,6 +79,9 @@ type LogstreamEndpointType string
 
 // LogType describes the type of logging.
 type LogType string
+
+// CompressionFormat specifies what kind of compression to use on logs.
+type CompressionFormat string
 
 // S3AuthenticationType describes the type of authentication used to stream logs to a LogstreamS3Endpoint.
 type S3AuthenticationType string
