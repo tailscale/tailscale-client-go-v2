@@ -107,13 +107,31 @@ type DevicePostureAttributeRequest struct {
 	Comment string `json:"comment"`
 }
 
-// Get gets the [Device] identified by deviceID.
+// GetWithAllFields gets the [Device] identified by `deviceID`.
+// All fields will be populated.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
+func (dr *DevicesResource) GetWithAllFields(ctx context.Context, deviceID string) (*Device, error) {
+	return dr.get(ctx, deviceID, true)
+}
+
+// Get gets the [Device] identified by `deviceID`.
 //
 // Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
 func (dr *DevicesResource) Get(ctx context.Context, deviceID string) (*Device, error) {
+	return dr.get(ctx, deviceID, false)
+}
+
+func (dr *DevicesResource) get(ctx context.Context, deviceID string, allFields bool) (*Device, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildURL("device", deviceID))
 	if err != nil {
 		return nil, err
+	}
+
+	if allFields {
+		q := req.URL.Query()
+		q.Set("fields", "all")
+		req.URL.RawQuery = q.Encode()
 	}
 
 	return body[Device](dr, req)
@@ -156,13 +174,13 @@ func (dr *DevicesResource) List(ctx context.Context) ([]Device, error) {
 	return dr.list(ctx, false)
 }
 
-func (dr *DevicesResource) list(ctx context.Context, all bool) ([]Device, error) {
+func (dr *DevicesResource) list(ctx context.Context, allFields bool) ([]Device, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildTailnetURL("devices"))
 	if err != nil {
 		return nil, err
 	}
 
-	if all {
+	if allFields {
 		q := req.URL.Query()
 		q.Set("fields", "all")
 		req.URL.RawQuery = q.Encode()

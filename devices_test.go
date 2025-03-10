@@ -94,19 +94,21 @@ func TestClient_Devices_Get(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 	server.ResponseBody = expectedDevice
 
-	t.Run("using legacy id", func(t *testing.T) {
+	t.Run("using legacy id with default fields", func(t *testing.T) {
 		actualDevice, err := client.Devices().Get(context.Background(), "12345")
 		assert.NoError(t, err)
 		assert.Equal(t, http.MethodGet, server.Method)
 		assert.Equal(t, "/api/v2/device/12345", server.Path)
+		assert.Empty(t, server.Query.Get("fields"))
 		assert.EqualValues(t, expectedDevice, actualDevice)
 	})
 
-	t.Run("using preferred nodeId", func(t *testing.T) {
-		actualDevice, err := client.Devices().Get(context.Background(), "nTESTJ31")
+	t.Run("using preferred nodeId with all fields", func(t *testing.T) {
+		actualDevice, err := client.Devices().GetWithAllFields(context.Background(), "nTESTJ31")
 		assert.NoError(t, err)
 		assert.Equal(t, http.MethodGet, server.Method)
 		assert.Equal(t, "/api/v2/device/nTESTJ31", server.Path)
+		assert.Equal(t, "all", server.Query.Get("fields"))
 		assert.EqualValues(t, expectedDevice, actualDevice)
 	})
 }
