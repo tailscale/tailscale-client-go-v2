@@ -11,7 +11,7 @@ jobs:
     container: golang:1.22
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Get cache paths
         id: cache
@@ -20,7 +20,7 @@ jobs:
           echo "module=$(go env GOMODCACHE)" | tee -a $GITHUB_OUTPUT
 
       - name: Set up cache
-        uses: actions/cache@v4
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
         with:
           path: |
             ${{ steps.cache.outputs.build }}
@@ -36,6 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
     - name: check licenses
       run: ./scripts/check_license_headers.sh .
