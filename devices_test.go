@@ -399,6 +399,21 @@ func TestClient_SetDevicePostureAttributes(t *testing.T) {
 	assert.EqualValues(t, setRequest, receivedRequest)
 }
 
+func TestClient_DeleteDevicePostureAttributes(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+	server.ResponseBody = nil
+
+	const deviceID = "test"
+	const attributeKey = "custom:test"
+
+	assert.NoError(t, client.Devices().DeletePostureAttribute(context.Background(), deviceID, attributeKey))
+	assert.EqualValues(t, http.MethodDelete, server.Method)
+	assert.EqualValues(t, "/api/v2/device/"+deviceID+"/attributes/"+attributeKey, server.Path)
+}
+
 func TestClient_SetDeviceKey(t *testing.T) {
 	t.Parallel()
 
