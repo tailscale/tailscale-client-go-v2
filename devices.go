@@ -161,6 +161,18 @@ func (dr *DevicesResource) SetPostureAttribute(ctx context.Context, deviceID, at
 	return dr.do(req, nil)
 }
 
+// DeletePostureAttribute deletes the posture attribute of the device identified by deviceID.
+//
+// Using the device `NodeID` is preferred, but its numeric `ID` value can also be used.
+func (dr *DevicesResource) DeletePostureAttribute(ctx context.Context, deviceID, attributeKey string) error {
+	req, err := dr.buildRequest(ctx, http.MethodDelete, dr.buildURL("device", deviceID, "attributes", attributeKey))
+	if err != nil {
+		return err
+	}
+
+	return dr.do(req, nil)
+}
+
 // ListWithAllFields lists every [Device] in the tailnet. Each [Device] in
 // the response will have all fields populated.
 func (dr *DevicesResource) ListWithAllFields(ctx context.Context) ([]Device, error) {
