@@ -77,7 +77,7 @@ func (kr *KeysResource) CreateAuthKey(ctx context.Context, ckr CreateKeyRequest)
 // CreateOAuthClient creates a new OAuth client. Returns the generated [Key] if successful.
 func (kr *KeysResource) CreateOAuthClient(ctx context.Context, ckr CreateOAuthClientRequest) (*Key, error) {
 	req, err := kr.buildRequest(ctx, http.MethodPost, kr.buildTailnetURL("keys"), requestBody(createOAuthClientWithKeyTypeRequest{
-		KeyType:                  "oauthclient",
+		KeyType:                  "client",
 		CreateOAuthClientRequest: ckr,
 	}))
 	if err != nil {
