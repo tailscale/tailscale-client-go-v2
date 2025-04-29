@@ -156,7 +156,7 @@ func TestClient_CreateOAuthClient(t *testing.T) {
 
 	var actualReq createOAuthClientWithKeyTypeRequest
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
-	assert.EqualValues(t, "oauthclient", actualReq.KeyType)
+	assert.EqualValues(t, "client", actualReq.KeyType)
 	assert.EqualValues(t, 1, len(actualReq.Scopes))
 	assert.EqualValues(t, "all:read", actualReq.Scopes[0])
 	assert.EqualValues(t, 1, len(actualReq.Tags))
