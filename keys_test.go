@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestClient_CreateKey(t *testing.T) {
+func TestClient_CreateAuthKey(t *testing.T) {
 	t.Parallel()
 
 	client, server := NewTestHarness(t)
@@ -36,7 +36,7 @@ func TestClient_CreateKey(t *testing.T) {
 
 	server.ResponseBody = expected
 
-	actual, err := client.Keys().Create(context.Background(), CreateKeyRequest{
+	actual, err := client.Keys().CreateAuthKey(context.Background(), CreateKeyRequest{
 		Capabilities: capabilities,
 	})
 	assert.NoError(t, err)
@@ -51,7 +51,7 @@ func TestClient_CreateKey(t *testing.T) {
 	assert.EqualValues(t, "", actualReq.Description)
 }
 
-func TestClient_CreateKeyWithExpirySeconds(t *testing.T) {
+func TestClient_CreateAuthKeyWithExpirySeconds(t *testing.T) {
 	t.Parallel()
 
 	client, server := NewTestHarness(t)
@@ -74,7 +74,7 @@ func TestClient_CreateKeyWithExpirySeconds(t *testing.T) {
 
 	server.ResponseBody = expected
 
-	actual, err := client.Keys().Create(context.Background(), CreateKeyRequest{
+	actual, err := client.Keys().CreateAuthKey(context.Background(), CreateKeyRequest{
 		Capabilities:  capabilities,
 		ExpirySeconds: 1440,
 	})
@@ -90,7 +90,7 @@ func TestClient_CreateKeyWithExpirySeconds(t *testing.T) {
 	assert.EqualValues(t, "", actualReq.Description)
 }
 
-func TestClient_CreateKeyWithDescription(t *testing.T) {
+func TestClient_CreateAuthKeyWithDescription(t *testing.T) {
 	t.Parallel()
 
 	client, server := NewTestHarness(t)
@@ -113,7 +113,7 @@ func TestClient_CreateKeyWithDescription(t *testing.T) {
 
 	server.ResponseBody = expected
 
-	actual, err := client.Keys().Create(context.Background(), CreateKeyRequest{
+	actual, err := client.Keys().CreateAuthKey(context.Background(), CreateKeyRequest{
 		Capabilities: capabilities,
 		Description:  "key description",
 	})
@@ -127,6 +127,41 @@ func TestClient_CreateKeyWithDescription(t *testing.T) {
 	assert.EqualValues(t, capabilities, actualReq.Capabilities)
 	assert.EqualValues(t, 0, actualReq.ExpirySeconds)
 	assert.EqualValues(t, "key description", actualReq.Description)
+}
+
+func TestClient_CreateOAuthClient(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	expected := &Key{
+		ID:          "test",
+		Key:         "thisisatestclient",
+		Created:     time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:     time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Description: "",
+	}
+
+	server.ResponseBody = expected
+
+	actual, err := client.Keys().CreateOAuthClient(context.Background(), CreateOAuthClientRequest{
+		Scopes: []string{"all:read"},
+		Tags:   []string{"tag:test"},
+	})
+	assert.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+	assert.Equal(t, http.MethodPost, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/keys", server.Path)
+
+	var actualReq createOAuthClientWithKeyTypeRequest
+	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
+	assert.EqualValues(t, "oauthclient", actualReq.KeyType)
+	assert.EqualValues(t, 1, len(actualReq.Scopes))
+	assert.EqualValues(t, "all:read", actualReq.Scopes[0])
+	assert.EqualValues(t, 1, len(actualReq.Tags))
+	assert.EqualValues(t, "tag:test", actualReq.Tags[0])
+	assert.EqualValues(t, "", actualReq.Description)
 }
 
 func TestClient_GetKey(t *testing.T) {
