@@ -33,6 +33,18 @@ type CreateKeyRequest struct {
 	Description   string          `json:"description"`
 }
 
+// CreateOAuthClientRequest describes the definition of an OAuth client to create.
+type CreateOAuthClientRequest struct {
+	Scopes      []string `json:"scopes"`
+	Tags        []string `json:"tags"`
+	Description string   `json:"description"`
+}
+
+type createOAuthClientWithKeyTypeRequest struct {
+	KeyType string `json:"keyType"`
+	CreateOAuthClientRequest
+}
+
 // Key describes an authentication key within the tailnet.
 type Key struct {
 	ID           string          `json:"id"`
@@ -47,8 +59,27 @@ type Key struct {
 }
 
 // Create creates a new authentication key. Returns the generated [Key] if successful.
+// Deprecated: Use CreateAuthKey instead.
 func (kr *KeysResource) Create(ctx context.Context, ckr CreateKeyRequest) (*Key, error) {
 	req, err := kr.buildRequest(ctx, http.MethodPost, kr.buildTailnetURL("keys"), requestBody(ckr))
+	if err != nil {
+		return nil, err
+	}
+
+	return body[Key](kr, req)
+}
+
+// CreateAuthKey creates a new authentication key. Returns the generated [Key] if successful.
+func (kr *KeysResource) CreateAuthKey(ctx context.Context, ckr CreateKeyRequest) (*Key, error) {
+	return kr.Create(ctx, ckr)
+}
+
+// CreateOAuthClient creates a new OAuth client. Returns the generated [Key] if successful.
+func (kr *KeysResource) CreateOAuthClient(ctx context.Context, ckr CreateOAuthClientRequest) (*Key, error) {
+	req, err := kr.buildRequest(ctx, http.MethodPost, kr.buildTailnetURL("keys"), requestBody(createOAuthClientWithKeyTypeRequest{
+		KeyType:                  "oauthclient",
+		CreateOAuthClientRequest: ckr,
+	}))
 	if err != nil {
 		return nil, err
 	}
