@@ -48,6 +48,7 @@ type createOAuthClientWithKeyTypeRequest struct {
 // Key describes an authentication key within the tailnet.
 type Key struct {
 	ID           string          `json:"id"`
+	KeyType      string          `json:"keyType"`
 	Key          string          `json:"key"`
 	Description  string          `json:"description"`
 	Created      time.Time       `json:"created"`
