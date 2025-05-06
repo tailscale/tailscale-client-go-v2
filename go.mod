@@ -1,10 +1,10 @@
 module tailscale.com/client/tailscale/v2
 
-go 1.22.0
+go 1.24.0
 require (
 	github.com/stretchr/testify v1.10.0
 	github.com/tailscale/hujson v0.0.0-20220506213045-af5ed07155e5
-	golang.org/x/oauth2 v0.21.0
+	golang.org/x/oauth2 v0.30.0
 )
 
 require (
