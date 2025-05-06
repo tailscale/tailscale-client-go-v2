@@ -27,6 +27,7 @@ func TestClient_CreateAuthKey(t *testing.T) {
 
 	expected := &Key{
 		ID:           "test",
+		KeyType:      "auth",
 		Key:          "thisisatestkey",
 		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -65,6 +66,7 @@ func TestClient_CreateAuthKeyWithExpirySeconds(t *testing.T) {
 
 	expected := &Key{
 		ID:           "test",
+		KeyType:      "auth",
 		Key:          "thisisatestkey",
 		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -104,6 +106,7 @@ func TestClient_CreateAuthKeyWithDescription(t *testing.T) {
 
 	expected := &Key{
 		ID:           "test",
+		KeyType:      "auth",
 		Key:          "thisisatestkey",
 		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -137,6 +140,7 @@ func TestClient_CreateOAuthClient(t *testing.T) {
 
 	expected := &Key{
 		ID:          "test",
+		KeyType:     "client",
 		Key:         "thisisatestclient",
 		Created:     time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		Expires:     time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -178,6 +182,7 @@ func TestClient_GetKey(t *testing.T) {
 
 	expected := &Key{
 		ID:           "test",
+		KeyType:      "auth",
 		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		Capabilities: capabilities,
