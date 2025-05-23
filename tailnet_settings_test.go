@@ -19,6 +19,8 @@ func TestClient_TailnetSettings_Get(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 
 	expected := TailnetSettings{
+		ACLsExternallyManagedOn:                true,
+		ACLsExternalLink:                       "https://foo.com",
 		DevicesApprovalOn:                      true,
 		DevicesAutoUpdatesOn:                   true,
 		DevicesKeyDurationDays:                 5,
@@ -45,6 +47,8 @@ func TestClient_TailnetSettings_Update(t *testing.T) {
 	server.ResponseBody = nil
 
 	updateRequest := UpdateTailnetSettingsRequest{
+		ACLsExternallyManagedOn:                PointerTo(true),
+		ACLsExternalLink:                       PointerTo("https://foo.com"),
 		DevicesApprovalOn:                      PointerTo(true),
 		DevicesAutoUpdatesOn:                   PointerTo(true),
 		DevicesKeyDurationDays:                 PointerTo(5),
