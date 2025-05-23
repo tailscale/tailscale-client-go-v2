@@ -16,6 +16,9 @@ type TailnetSettingsResource struct {
 // TailnetSettings represents the current settings of a tailnet.
 // See https://tailscale.com/api#model/tailnetsettings.
 type TailnetSettings struct {
+	ACLsExternallyManagedOn bool   `json:"aclsExternallyManagedOn"`
+	ACLsExternalLink        string `json:"aclsExternalLink"`
+
 	DevicesApprovalOn      bool `json:"devicesApprovalOn"`
 	DevicesAutoUpdatesOn   bool `json:"devicesAutoUpdatesOn"`
 	DevicesKeyDurationDays int  `json:"devicesKeyDurationDays"` // days before device key expiry
@@ -31,6 +34,9 @@ type TailnetSettings struct {
 // UpdateTailnetSettingsRequest is a request to update the settings of a tailnet.
 // Nil values indicate that the existing setting should be left unchanged.
 type UpdateTailnetSettingsRequest struct {
+	ACLsExternallyManagedOn *bool   `json:"aclsExternallyManagedOn"`
+	ACLsExternalLink        *string `json:"aclsExternalLink"`
+
 	DevicesApprovalOn      *bool `json:"devicesApprovalOn,omitempty"`
 	DevicesAutoUpdatesOn   *bool `json:"devicesAutoUpdatesOn,omitempty"`
 	DevicesKeyDurationDays *int  `json:"devicesKeyDurationDays,omitempty"` // days before device key expiry
