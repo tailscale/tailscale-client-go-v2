@@ -25,14 +25,19 @@ func TestClient_CreateAuthKey(t *testing.T) {
 	capabilities.Devices.Create.Preauthorized = true
 	capabilities.Devices.Create.Tags = []string{"test:test"}
 
+	expiry := 1440 * time.Second
+
 	expected := &Key{
-		ID:           "test",
-		KeyType:      "auth",
-		Key:          "thisisatestkey",
-		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Capabilities: capabilities,
-		Description:  "",
+		ID:            "test",
+		KeyType:       "auth",
+		Key:           "thisisatestkey",
+		ExpirySeconds: &expiry,
+		Created:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Capabilities:  capabilities,
+		Scopes:        nil,
+		Tags:          nil,
+		Description:   "",
 	}
 
 	server.ResponseBody = expected
@@ -64,14 +69,19 @@ func TestClient_CreateAuthKeyWithExpirySeconds(t *testing.T) {
 	capabilities.Devices.Create.Preauthorized = true
 	capabilities.Devices.Create.Tags = []string{"test:test"}
 
+	expiry := 1440 * time.Second
+
 	expected := &Key{
-		ID:           "test",
-		KeyType:      "auth",
-		Key:          "thisisatestkey",
-		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Capabilities: capabilities,
-		Description:  "",
+		ID:            "test",
+		KeyType:       "auth",
+		Key:           "thisisatestkey",
+		ExpirySeconds: &expiry,
+		Created:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Capabilities:  capabilities,
+		Scopes:        nil,
+		Tags:          nil,
+		Description:   "",
 	}
 
 	server.ResponseBody = expected
@@ -105,13 +115,16 @@ func TestClient_CreateAuthKeyWithDescription(t *testing.T) {
 	capabilities.Devices.Create.Tags = []string{"test:test"}
 
 	expected := &Key{
-		ID:           "test",
-		KeyType:      "auth",
-		Key:          "thisisatestkey",
-		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Capabilities: capabilities,
-		Description:  "key description",
+		ID:            "test",
+		KeyType:       "auth",
+		Key:           "thisisatestkey",
+		ExpirySeconds: nil,
+		Created:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Capabilities:  capabilities,
+		Scopes:        nil,
+		Tags:          nil,
+		Description:   "key description",
 	}
 
 	server.ResponseBody = expected
@@ -139,12 +152,15 @@ func TestClient_CreateOAuthClient(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 
 	expected := &Key{
-		ID:          "test",
-		KeyType:     "client",
-		Key:         "thisisatestclient",
-		Created:     time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Expires:     time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Description: "",
+		ID:            "test",
+		KeyType:       "client",
+		Key:           "thisisatestclient",
+		ExpirySeconds: nil,
+		Created:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Scopes:        []string{"all:read"},
+		Tags:          []string{"tag:test"},
+		Description:   "",
 	}
 
 	server.ResponseBody = expected
@@ -181,12 +197,15 @@ func TestClient_GetKey(t *testing.T) {
 	capabilities.Devices.Create.Tags = []string{"test:test"}
 
 	expected := &Key{
-		ID:           "test",
-		KeyType:      "auth",
-		Created:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Expires:      time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
-		Capabilities: capabilities,
-		Description:  "",
+		ID:            "test",
+		KeyType:       "auth",
+		ExpirySeconds: nil,
+		Created:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Capabilities:  capabilities,
+		Scopes:        nil,
+		Tags:          nil,
+		Description:   "",
 	}
 
 	server.ResponseBody = expected
