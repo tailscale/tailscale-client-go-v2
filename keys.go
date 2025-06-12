@@ -47,16 +47,19 @@ type createOAuthClientWithKeyTypeRequest struct {
 
 // Key describes an authentication key within the tailnet.
 type Key struct {
-	ID           string          `json:"id"`
-	KeyType      string          `json:"keyType"`
-	Key          string          `json:"key"`
-	Description  string          `json:"description"`
-	Created      time.Time       `json:"created"`
-	Expires      time.Time       `json:"expires"`
-	Revoked      time.Time       `json:"revoked"`
-	Invalid      bool            `json:"invalid"`
-	Capabilities KeyCapabilities `json:"capabilities"`
-	UserID       string          `json:"userId"`
+	ID            string          `json:"id"`
+	KeyType       string          `json:"keyType"`
+	Key           string          `json:"key"`
+	Description   string          `json:"description"`
+	ExpirySeconds *time.Duration  `json:"expirySeconds"`
+	Created       time.Time       `json:"created"`
+	Expires       time.Time       `json:"expires"`
+	Revoked       time.Time       `json:"revoked"`
+	Invalid       bool            `json:"invalid"`
+	Capabilities  KeyCapabilities `json:"capabilities"`
+	Scopes        []string        `json:"scopes,omitempty"`
+	Tags          []string        `json:"tags,omitempty"`
+	UserID        string          `json:"userId"`
 }
 
 // Create creates a new authentication key. Returns the generated [Key] if successful.
