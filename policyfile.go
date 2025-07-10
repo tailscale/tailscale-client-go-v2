@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -198,7 +199,7 @@ func (pr *PolicyFileResource) Raw(ctx context.Context) (*RawACL, error) {
 func (pr *PolicyFileResource) Set(ctx context.Context, acl any, etag string) error {
 	headers := make(map[string]string)
 	if etag != "" {
-		headers["If-Match"] = fmt.Sprintf("%q", etag)
+		headers["If-Match"] = fmt.Sprintf("%q", strings.Trim(etag, `"`))
 	}
 
 	reqOpts := []requestOption{
@@ -226,7 +227,7 @@ func (pr *PolicyFileResource) Set(ctx context.Context, acl any, etag string) err
 func (pr *PolicyFileResource) SetAndGet(ctx context.Context, acl ACL, etag string) (*ACL, error) {
 	headers := make(map[string]string)
 	if etag != "" {
-		headers["If-Match"] = fmt.Sprintf("%q", etag)
+		headers["If-Match"] = fmt.Sprintf("%q", strings.Trim(etag, `"`))
 	}
 
 	reqOpts := []requestOption{
