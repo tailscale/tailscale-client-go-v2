@@ -24,6 +24,26 @@
     // users in group:devops can apply the tag tag:prod
     "tag:prod": ["group:devops"],
   },
+  "attrConfig": {
+    // example string attribute that nodes can set
+    "custom:example": {
+      "type": "string",
+      "allowSetByNode": true,
+      "broadcastToPeers": ["*"]
+    },
+    // secure boolean attribute only settable by admin
+    "custom:secure": {
+      "type": "bool",
+      "allowSetByNode": false,
+      "broadcastToPeers": ["tag:admin"]
+    },
+    // priority number attribute nodes can set themselves
+    "custom:priority": {
+      "type": "number",
+      "allowSetByNode": true,
+      // no broadcastToPeers means it won't be broadcast
+    }
+  },
   "tests": [
     {
       "src": "carl@example.com",
