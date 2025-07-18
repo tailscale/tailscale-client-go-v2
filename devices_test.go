@@ -60,6 +60,7 @@ func TestClient_Devices_Get(t *testing.T) {
 		LastSeen:                  Time{time.Date(2022, 3, 9, 20, 3, 42, 0, time.UTC)},
 		MachineKey:                "mkey:test",
 		NodeKey:                   "nodekey:test",
+		IsEphemeral:               false,
 		OS:                        "windows",
 		TailnetLockError:          "test error",
 		TailnetLockKey:            "tlpub:test",
@@ -162,6 +163,7 @@ func TestClient_Devices_List(t *testing.T) {
 				Created:                   Time{time.Date(2022, 2, 10, 11, 50, 23, 0, time.UTC)},
 				Expires:                   Time{time.Date(2022, 8, 9, 11, 50, 23, 0, time.UTC)},
 				Hostname:                  "test",
+				IsEphemeral:               false,
 				IsExternal:                false,
 				LastSeen:                  Time{time.Date(2022, 3, 9, 20, 3, 42, 0, time.UTC)},
 				MachineKey:                "mkey:test",
@@ -234,6 +236,7 @@ func TestDevices_Unmarshal(t *testing.T) {
 					Hostname:          "hello",
 					ID:                "50052",
 					NodeID:            "nTESTJ30",
+					IsEphemeral:       false,
 					IsExternal:        true,
 					KeyExpiryDisabled: true,
 					LastSeen: Time{
@@ -260,6 +263,7 @@ func TestDevices_Unmarshal(t *testing.T) {
 					Hostname:          "foo",
 					ID:                "50053",
 					NodeID:            "nTESTJ31",
+					IsEphemeral:       true,
 					IsExternal:        false,
 					KeyExpiryDisabled: true,
 					LastSeen: Time{
