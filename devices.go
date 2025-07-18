@@ -81,6 +81,7 @@ type Device struct {
 	Created                   Time     `json:"created"`
 	Expires                   Time     `json:"expires"`
 	Hostname                  string   `json:"hostname"`
+	IsEphemeral               bool     `json:"isEphemeral"`
 	IsExternal                bool     `json:"isExternal"`
 	LastSeen                  Time     `json:"lastSeen"`
 	MachineKey                string   `json:"machineKey"`
