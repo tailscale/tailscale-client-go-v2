@@ -65,5 +65,40 @@
       "users": ["root", "autogroup:nonroot"],
       "checkPeriod": "always"
     },
-  ]
+  ],
+  "grants": [
+    {
+      "src": ["autogroup:member"],
+      "dst": ["autogroup:self"],
+      "ip": ["*"],
+      "srcPosture": ["posture:latestMac"],
+      "via": ["tag:subnet-router"]
+    },
+    {
+      "src": ["group:prod"],
+      "dst": ["tag:k8s-operator"],
+      "app": {
+        "tailscale.com/cap/kubernetes": [
+          {
+            "impersonate": {
+              "groups": ["system:masters"]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "src": ["autogroup:admin"],
+      "dst": ["tag:golinks"],
+      "app": {
+          "tailscale.com/cap/golink": [{"admin": true}]
+      }
+    },
+  ],
+  "ipsets": {
+    "ipset:prod": [
+        "add 192.0.2.0/24",
+        "remove 192.0.2.33"
+    ]
+  },
 }
