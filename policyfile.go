@@ -167,8 +167,8 @@ type Grant struct {
 	Destination []string                    `json:"dst,omitempty" hujson:"Dst,omitempty"`
 	IP          []string                    `ip:"dst,omitempty" hujson:"IP,omitempty"`
 	App         map[string][]map[string]any `json:"app,omitempty" hujson:"App,omitempty"`
-	SrcPosture  []string                    `json:"srcPosture"`
-	Via         []string                    `json:"via"`
+	SrcPosture  []string                    `json:"srcPosture,omitempty" hujson:"SrcPosture,omitempty"`
+	Via         []string                    `json:"via,omitempty" hujson:"Via,omitempty"`
 }
 
 // Get retrieves the [ACL] that is currently set for the tailnet.
