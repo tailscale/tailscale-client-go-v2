@@ -117,6 +117,45 @@ func TestACL_Unmarshal(t *testing.T) {
 						CheckPeriod: SSHCheckPeriod(time.Hour * 20),
 					},
 				},
+				Grants: []Grant{
+					{
+						Source:      []string{"autogroup:member"},
+						Destination: []string{"autogroup:self"},
+						IP:          []string{"*"},
+						SrcPosture:  []string{"posture:latestMac"},
+						Via:         []string{"tag:subnet-router"},
+					},
+					{
+						Source:      []string{"group:prod"},
+						Destination: []string{"tag:k8s-operator"},
+						App: map[string][]map[string]any{
+							"tailscale.com/cap/kubernetes": {
+								{
+									"impersonate": map[string]any{
+										"groups": []any{"system:masters"},
+									},
+								},
+							},
+						},
+					},
+					{
+						Source:      []string{"autogroup:admin"},
+						Destination: []string{"tag:golinks"},
+						App: map[string][]map[string]any{
+							"tailscale.com/cap/golink": {
+								{
+									"admin": true,
+								},
+							},
+						},
+					},
+				},
+				IPSets: map[string][]string{
+					"ipset:prod": {
+						"add 192.0.2.0/24",
+						"remove 192.0.2.33",
+					},
+				},
 			},
 		},
 		{
@@ -218,6 +257,45 @@ func TestACL_Unmarshal(t *testing.T) {
 						Deny:   []string{"tag:prod:80"},
 						Source: "alice@example.com",
 						Accept: []string{"tag:dev:80"}},
+				},
+				Grants: []Grant{
+					{
+						Source:      []string{"autogroup:member"},
+						Destination: []string{"autogroup:self"},
+						IP:          []string{"*"},
+						SrcPosture:  []string{"posture:latestMac"},
+						Via:         []string{"tag:subnet-router"},
+					},
+					{
+						Source:      []string{"group:prod"},
+						Destination: []string{"tag:k8s-operator"},
+						App: map[string][]map[string]any{
+							"tailscale.com/cap/kubernetes": {
+								{
+									"impersonate": map[string]any{
+										"groups": []any{"system:masters"},
+									},
+								},
+							},
+						},
+					},
+					{
+						Source:      []string{"autogroup:admin"},
+						Destination: []string{"tag:golinks"},
+						App: map[string][]map[string]any{
+							"tailscale.com/cap/golink": {
+								{
+									"admin": true,
+								},
+							},
+						},
+					},
+				},
+				IPSets: map[string][]string{
+					"ipset:prod": {
+						"add 192.0.2.0/24",
+						"remove 192.0.2.33",
+					},
 				},
 			},
 		},
