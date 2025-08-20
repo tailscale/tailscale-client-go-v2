@@ -5,7 +5,12 @@ package tailscale
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"net/url"
+	"time"
 )
 
 // LoggingResource provides access to https://tailscale.com/api#tag/logging.
@@ -146,4 +151,134 @@ func (lr *LoggingResource) ValidateAWSTrustPolicy(ctx context.Context, awsExtern
 		return err
 	}
 	return lr.do(req, nil)
+}
+
+// NetworkFlowLog represents a network flow log entry from the Tailscale API.
+type NetworkFlowLog struct {
+	Logged          time.Time      `json:"logged"`                    // the time at which this log was captured by the server
+	NodeID          string         `json:"nodeId"`                    // the node ID for which the flow statistics apply
+	Start           time.Time      `json:"start"`                     // the start of the sample period (node's local clock)
+	End             time.Time      `json:"end"`                       // the end of the sample period (node's local clock)
+	VirtualTraffic  []TrafficStats `json:"virtualTraffic,omitempty"`  // traffic between Tailscale nodes
+	SubnetTraffic   []TrafficStats `json:"subnetTraffic,omitempty"`   // traffic involving subnet routes
+	ExitTraffic     []TrafficStats `json:"exitTraffic,omitempty"`     // traffic via exit nodes
+	PhysicalTraffic []TrafficStats `json:"physicalTraffic,omitempty"` // WireGuard transport-level statistics
+}
+
+// TrafficStats represents traffic flow statistics.
+// This type is used for all traffic types: virtual, subnet, exit, and physical.
+type TrafficStats struct {
+	Proto   int    `json:"proto,omitempty"`   // IP protocol number (e.g., 6 for TCP, 17 for UDP)
+	Src     string `json:"src,omitempty"`     // Source address and port
+	Dst     string `json:"dst,omitempty"`     // Destination address and port
+	TxPkts  uint64 `json:"txPkts,omitempty"`  // Transmitted packets
+	TxBytes uint64 `json:"txBytes,omitempty"` // Transmitted bytes
+	RxPkts  uint64 `json:"rxPkts,omitempty"`  // Received packets
+	RxBytes uint64 `json:"rxBytes,omitempty"` // Received bytes
+}
+
+// NetworkFlowLogsRequest represents query parameters for fetching network flow logs.
+type NetworkFlowLogsRequest struct {
+	// Start must be set to a non-zero time within the log retention period (last 30 days).
+	// The server may adjust times that are too old.
+	Start time.Time
+	// End must be set to a non-zero time after Start.
+	End time.Time
+}
+
+// NetworkFlowLogHandler is a callback function for processing individual network flow log entries.
+// It receives each log entry as it's parsed from the JSON stream.
+// Return an error to stop processing and bubble up the error.
+type NetworkFlowLogHandler func(log NetworkFlowLog) error
+
+// GetNetworkFlowLogs streams network flow logs for the tailnet, calling the provided
+// handler function for each log entry as it's parsed from the JSON response.
+// This approach is memory-efficient and handles large datasets without loading all logs into memory.
+//
+// Both start and end parameters are required by the server.
+// Times older than 30 days will be automatically adjusted by the server to the retention limit.
+func (lr *LoggingResource) GetNetworkFlowLogs(ctx context.Context, params NetworkFlowLogsRequest, handler NetworkFlowLogHandler) error {
+
+	u := lr.buildTailnetURL("logging", "network")
+	u.RawQuery = url.Values{
+		"start": {params.Start.Format(time.RFC3339)},
+		"end":   {params.End.Format(time.RFC3339)},
+	}.Encode()
+
+	req, err := lr.buildRequest(ctx, http.MethodGet, u)
+	if err != nil {
+		return err
+	}
+
+	return lr.streamNetworkFlowLogs(req, handler)
+}
+
+// checkDelim reads and verifies the next JSON delimiter from the decoder
+func checkDelim(dec *json.Decoder, want json.Delim, description string) error {
+	token, err := dec.Token()
+	if err != nil {
+		return fmt.Errorf("failed to read %s: %w", description, err)
+	}
+	if delim, ok := token.(json.Delim); !ok || delim != want {
+		return fmt.Errorf("expected %c for %s, got %v", want, description, token)
+	}
+	return nil
+}
+
+// streamNetworkFlowLogs performs the streaming JSON parsing of network flow logs
+func (lr *LoggingResource) streamNetworkFlowLogs(req *http.Request, handler NetworkFlowLogHandler) error {
+	lr.init()
+	resp, err := lr.HTTP.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(body))
+	}
+
+	decoder := json.NewDecoder(resp.Body)
+
+	if err := checkDelim(decoder, '{', "opening brace"); err != nil {
+		return err
+	}
+
+	token, err := decoder.Token()
+	if err != nil {
+		return fmt.Errorf("failed to read field name: %w", err)
+	}
+	if fieldName, ok := token.(string); !ok || fieldName != "logs" {
+		return fmt.Errorf("expected 'logs' field, got %v", token)
+	}
+
+	if err := checkDelim(decoder, '[', "logs array start"); err != nil {
+		return err
+	}
+
+	for decoder.More() {
+		if err := req.Context().Err(); err != nil {
+			return err
+		}
+
+		var log NetworkFlowLog
+		if err := decoder.Decode(&log); err != nil {
+			return fmt.Errorf("failed to decode log entry: %w", err)
+		}
+
+		if err := handler(log); err != nil {
+			return fmt.Errorf("handler error: %w", err)
+		}
+	}
+
+	if err := checkDelim(decoder, ']', "logs array end"); err != nil {
+		return err
+	}
+
+	if err := checkDelim(decoder, '}', "closing brace"); err != nil {
+		return err
+	}
+
+	return nil
 }
