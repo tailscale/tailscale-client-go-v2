@@ -101,4 +101,7 @@
         "remove 192.0.2.33"
     ]
   },
+  "extra": {
+    "other": false,
+  }
 }

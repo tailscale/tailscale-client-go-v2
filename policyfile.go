@@ -5,8 +5,10 @@ package tailscale
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -79,6 +81,56 @@ type ACL struct {
 
 	// ETag is the etag corresponding to this version of the ACL
 	ETag string `json:"-"`
+}
+
+type ACLWithAdditionalFields struct {
+	ACL
+	AdditionalFields map[string]interface{} `json:"-"`
+}
+
+type _ACLWithAdditionalFields ACLWithAdditionalFields
+
+func (a *ACLWithAdditionalFields) UnmarshalJSON(b []byte) (err error) {
+	acl := _ACLWithAdditionalFields{}
+
+	if err = json.Unmarshal(b, &acl); err == nil {
+		*a = ACLWithAdditionalFields(acl)
+	}
+
+	objValue := reflect.ValueOf(&ACL{}).Elem()
+	var jsonFields []string
+	for i := 0; i != objValue.NumField(); i++ {
+		if tag := objValue.Type().Field(i).Tag.Get("json"); tag != "" {
+			jsonFields = append(jsonFields, strings.Split(tag, ",")[0])
+		}
+	}
+
+	m := make(map[string]interface{})
+
+	if err = json.Unmarshal(b, &m); err == nil {
+		for _, field := range jsonFields {
+			delete(m, field)
+		}
+		a.AdditionalFields = m
+	}
+
+	return err
+}
+
+func (a *ACLWithAdditionalFields) MarshalJSON() ([]byte, error) {
+	acl := _ACLWithAdditionalFields(*a)
+
+	var inInterface map[string]interface{}
+	inrec, _ := json.Marshal(acl)
+	json.Unmarshal(inrec, &inInterface)
+
+	for field, val := range acl.AdditionalFields {
+		if _, ok := inInterface[field]; !ok {
+			inInterface[field] = val
+		}
+	}
+
+	return json.Marshal(inInterface)
 }
 
 // RawACL contains a raw HuJSON ACL and its associated ETag.
@@ -169,6 +221,20 @@ type Grant struct {
 	App         map[string][]map[string]any `json:"app,omitempty" hujson:"App,omitempty"`
 	SrcPosture  []string                    `json:"srcPosture,omitempty" hujson:"SrcPosture,omitempty"`
 	Via         []string                    `json:"via,omitempty" hujson:"Via,omitempty"`
+}
+
+func (pr *PolicyFileResource) GetWithAdditionalFields(ctx context.Context) (*ACLWithAdditionalFields, error) {
+	req, err := pr.buildRequest(ctx, http.MethodGet, pr.buildTailnetURL("acl"))
+	if err != nil {
+		return nil, err
+	}
+
+	acl, header, err := bodyWithResponseHeader[ACLWithAdditionalFields](pr, req)
+	if err != nil {
+		return nil, err
+	}
+	acl.ETag = header.Get("Etag")
+	return acl, nil
 }
 
 // Get retrieves the [ACL] that is currently set for the tailnet.

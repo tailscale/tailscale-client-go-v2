@@ -544,6 +544,63 @@ func TestClient_ACL(t *testing.T) {
 	assert.EqualValues(t, "/api/v2/tailnet/example.com/acl", server.Path)
 }
 
+func TestClient_ACLWithAdditionalFields(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+
+	server.ResponseCode = http.StatusOK
+	server.ResponseBody = &ACLWithAdditionalFields{
+		ACL: ACL{
+			ACLs: []ACLEntry{
+				{
+					Action: "accept",
+					Ports:  []string{"*:*"},
+					Users:  []string{"*"},
+				},
+			},
+			TagOwners: map[string][]string{
+				"tag:example": {"group:example"},
+			},
+			Hosts: map[string]string{
+				"example-host-1": "100.100.100.100",
+				"example-host-2": "100.100.101.100/24",
+			},
+			Groups: map[string][]string{
+				"group:example": {
+					"user1@example.com",
+					"user2@example.com",
+				},
+			},
+			Tests: []ACLTest{
+				{
+					User:  "user1@example.com",
+					Allow: []string{"example-host-1:22", "example-host-2:80"},
+					Deny:  []string{"exapmle-host-2:100"},
+				},
+				{
+					User:  "user2@example.com",
+					Allow: []string{"100.60.3.4:22"},
+				},
+			},
+			ETag: "myetag",
+		},
+		AdditionalFields: map[string]any{
+			"extra": map[string]any{
+				"other": false,
+			},
+		},
+	}
+	server.ResponseHeader.Add("ETag", "myetag")
+
+	acl, err := client.PolicyFile().GetWithAdditionalFields(context.Background())
+	assert.NoError(t, err)
+	assert.EqualValues(t, server.ResponseBody, acl)
+	assert.EqualValues(t, http.MethodGet, server.Method)
+	assert.EqualValues(t, "application/json", server.Header.Get("Accept"))
+	assert.EqualValues(t, "/api/v2/tailnet/example.com/acl", server.Path)
+}
+
 func TestClient_RawACL(t *testing.T) {
 	t.Parallel()
 
