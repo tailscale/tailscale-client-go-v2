@@ -52,3 +52,19 @@ func Test_BuildTailnetURL(t *testing.T) {
 	require.NoError(t, err)
 	assert.EqualValues(t, expected.String(), actual.String())
 }
+
+func Test_BuildTailnetURLDefault(t *testing.T) {
+	t.Parallel()
+
+	base, err := url.Parse("http://example.com")
+	require.NoError(t, err)
+
+	c := &Client{
+		BaseURL: base,
+	}
+	c.init()
+	actual := c.buildTailnetURL("path")
+	expected, err := url.Parse("http://example.com/api/v2/tailnet/-/path")
+	require.NoError(t, err)
+	assert.EqualValues(t, expected.String(), actual.String())
+}
