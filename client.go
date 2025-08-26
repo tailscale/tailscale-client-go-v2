@@ -30,7 +30,9 @@ type Client struct {
 	// APIKey allows specifying an APIKey to use for authentication.
 	// To use OAuth Client credentials, construct an [http.Client] using [OAuthConfig] and specify that below.
 	APIKey string
-	// Tailnet allows specifying a specific Tailnet by name, to which this Client will connect by default.
+	// Tailnet allows specifying a specific tailnet by name, to which this Client will connect by default.
+	// If Tailnet is left blank, the client will connect to default tailnet based on the client's credential,
+	// using the "-" (dash) default tailnet path.
 	Tailnet string
 
 	// HTTP is the [http.Client] to use for requests to the API server.
@@ -91,6 +93,9 @@ func (c *Client) init() {
 		}
 		if c.HTTP == nil {
 			c.HTTP = &http.Client{Timeout: defaultHttpClientTimeout}
+		}
+		if c.Tailnet == "" {
+			c.Tailnet = "-"
 		}
 		c.contacts = &ContactsResource{c}
 		c.devicePosture = &DevicePostureResource{c}
