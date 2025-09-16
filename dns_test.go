@@ -182,3 +182,72 @@ func TestClient_SetSplitDNS(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &body))
 	assert.EqualValues(t, nameservers, body["example.com"])
 }
+
+func TestClient_DNSConfiguration(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+	server.ResponseBody = &DNSConfiguration{
+		Nameservers: []DNSConfigurationResolver{
+			{
+				Address:         "8.8.8.8",
+				UseWithExitNode: true,
+			},
+		},
+		SplitDNS: map[string][]DNSConfigurationResolver{
+			"example.com": []DNSConfigurationResolver{
+				{
+					Address:         "4.4.4.4",
+					UseWithExitNode: true,
+				},
+			},
+		},
+		Preferences: DNSConfigurationPreferences{
+			OverrideLocalDNS: true,
+			MagicDNS:         true,
+		},
+	}
+
+	configuration, err := client.DNS().Configuration(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, http.MethodGet, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/dns/configuration", server.Path)
+	assert.Equal(t, server.ResponseBody, configuration)
+}
+
+func TestClient_SetDNSConfiguration(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	configuration := DNSConfiguration{
+		Nameservers: []DNSConfigurationResolver{
+			{
+				Address:         "8.8.8.8",
+				UseWithExitNode: true,
+			},
+		},
+		SplitDNS: map[string][]DNSConfigurationResolver{
+			"example.com": {
+				{
+					Address:         "4.4.4.4",
+					UseWithExitNode: true,
+				},
+			},
+		},
+		Preferences: DNSConfigurationPreferences{
+			OverrideLocalDNS: true,
+			MagicDNS:         true,
+		},
+	}
+
+	assert.NoError(t, client.DNS().SetConfiguration(context.Background(), configuration))
+	assert.Equal(t, http.MethodPost, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/dns/configuration", server.Path)
+
+	var body DNSConfiguration
+	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &body))
+	assert.EqualValues(t, configuration, body)
+}

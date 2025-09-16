@@ -147,3 +147,42 @@ func (dr *DNSResource) SetPreferences(ctx context.Context, preferences DNSPrefer
 
 	return dr.do(req, nil)
 }
+
+type DNSConfiguration struct {
+	Nameservers []DNSConfigurationResolver            `json:"nameservers,omitempty"`
+	SplitDNS    map[string][]DNSConfigurationResolver `json:"splitDNS,omitempty"`
+	SearchPaths []string                              `json:"searchPaths,omitempty"`
+	Preferences DNSConfigurationPreferences           `json:"preferences,omitempty"`
+}
+
+type DNSConfigurationResolver struct {
+	Address         string `json:"address,omitempty"`
+	UseWithExitNode bool   `json:"useWithExitNode,omitempty"`
+}
+
+type DNSConfigurationPreferences struct {
+	OverrideLocalDNS bool `json:"overrideLocalDNS,omitempty"`
+	MagicDNS         bool `json:"magicDNS,omitempty"`
+}
+
+// Configuration retrieves the tailnet's complete DNS configuration.
+// WARNING - this is currently in alpha and subject to change.
+func (dr *DNSResource) Configuration(ctx context.Context) (*DNSConfiguration, error) {
+	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildTailnetURL("dns", "configuration"))
+	if err != nil {
+		return nil, err
+	}
+
+	return body[DNSConfiguration](dr, req)
+}
+
+// SetConfiguration sets the tailnet's complete DNS configuration.
+// WARNING - this is currently in alpha and subject to change.
+func (dr *DNSResource) SetConfiguration(ctx context.Context, configuration DNSConfiguration) error {
+	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildTailnetURL("dns", "configuration"), requestBody(configuration))
+	if err != nil {
+		return nil
+	}
+
+	return dr.do(req, nil)
+}
