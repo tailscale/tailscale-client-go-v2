@@ -20,7 +20,8 @@ type SplitDNSRequest map[string][]string
 type SplitDNSResponse SplitDNSRequest
 
 type DNSPreferences struct {
-	MagicDNS bool `json:"magicDNS"`
+	MagicDNS          bool `json:"magicDNS"`
+	HTTPSCertificates bool `json:"HTTPSCertificates"`
 }
 
 // SetSearchPaths replaces the list of search paths with the list supplied by the user and returns an error otherwise.
@@ -137,8 +138,8 @@ func (dr *DNSResource) Preferences(ctx context.Context) (*DNSPreferences, error)
 	return body[DNSPreferences](dr, req)
 }
 
-// SetPreferences replaces the DNS preferences for the tailnet, specifically, the MagicDNS setting. Note that MagicDNS
-// is dependent on DNS servers.
+// SetPreferences replaces the DNS preferences for the tailnet, specifically, the MagicDNS
+// and HTTPSCertificates settings. Note that MagicDNS is dependent on DNS servers.
 func (dr *DNSResource) SetPreferences(ctx context.Context, preferences DNSPreferences) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildTailnetURL("dns", "preferences"), requestBody(preferences))
 	if err != nil {
@@ -161,8 +162,9 @@ type DNSConfigurationResolver struct {
 }
 
 type DNSConfigurationPreferences struct {
-	OverrideLocalDNS bool `json:"overrideLocalDNS,omitempty"`
-	MagicDNS         bool `json:"magicDNS,omitempty"`
+	OverrideLocalDNS  bool `json:"overrideLocalDNS,omitempty"`
+	MagicDNS          bool `json:"magicDNS,omitempty"`
+	HTTPSCertificates bool `json:"HTTPSCertificates,omitempty"`
 }
 
 // Configuration retrieves the tailnet's complete DNS configuration.

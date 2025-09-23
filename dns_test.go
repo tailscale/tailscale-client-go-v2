@@ -36,7 +36,8 @@ func TestClient_DNSPreferences(t *testing.T) {
 	client, server := NewTestHarness(t)
 	server.ResponseCode = http.StatusOK
 	server.ResponseBody = &DNSPreferences{
-		MagicDNS: true,
+		MagicDNS:          true,
+		HTTPSCertificates: true,
 	}
 
 	preferences, err := client.DNS().Preferences(context.Background())
@@ -107,7 +108,8 @@ func TestClient_SetDNSPreferences(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 
 	preferences := DNSPreferences{
-		MagicDNS: true,
+		MagicDNS:          true,
+		HTTPSCertificates: true,
 	}
 
 	assert.NoError(t, client.DNS().SetPreferences(context.Background(), preferences))
@@ -204,8 +206,9 @@ func TestClient_DNSConfiguration(t *testing.T) {
 			},
 		},
 		Preferences: DNSConfigurationPreferences{
-			OverrideLocalDNS: true,
-			MagicDNS:         true,
+			OverrideLocalDNS:  true,
+			MagicDNS:          true,
+			HTTPSCertificates: true,
 		},
 	}
 
@@ -238,8 +241,9 @@ func TestClient_SetDNSConfiguration(t *testing.T) {
 			},
 		},
 		Preferences: DNSConfigurationPreferences{
-			OverrideLocalDNS: true,
-			MagicDNS:         true,
+			OverrideLocalDNS:  true,
+			MagicDNS:          true,
+			HTTPSCertificates: true,
 		},
 	}
 
