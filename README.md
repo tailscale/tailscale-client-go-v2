@@ -53,3 +53,10 @@ func main() {
 	devices, err := client.Devices().List(context.Background())
 }
 ```
+
+## Releasing
+
+Pushing a tag of the format `vX.Y.Z` will trigger the [release workflow](./.github/workflows/release.yml) which uses
+[goreleaser](https://github.com/goreleaser/goreleaser) to build and sign artifacts and generate a
+[GitHub release](https://github.com/tailscale/tailscale-client-go-v2/releases).
+
