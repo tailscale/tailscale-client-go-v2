@@ -1,0 +1,15 @@
+builds:
+  - skip: true
+
+release:
+  prerelease: auto
+
+changelog:
+  use: github
+  filters:
+    exclude:
+      - "^build\\(deps\\)"
+      - "^Bump"
+      - "^.github"
+      - "^.goreleaser"
+      - "^scripts"
