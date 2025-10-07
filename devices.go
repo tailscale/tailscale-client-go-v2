@@ -83,6 +83,7 @@ type Device struct {
 	Hostname                  string   `json:"hostname"`
 	IsEphemeral               bool     `json:"isEphemeral"`
 	IsExternal                bool     `json:"isExternal"`
+	ConnectedToControl        bool     `json:"connectedToControl"`
 	LastSeen                  Time     `json:"lastSeen"`
 	MachineKey                string   `json:"machineKey"`
 	NodeKey                   string   `json:"nodeKey"`
