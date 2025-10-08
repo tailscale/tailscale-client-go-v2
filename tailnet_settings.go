@@ -29,6 +29,7 @@ type TailnetSettings struct {
 	NetworkFlowLoggingOn        bool `json:"networkFlowLoggingOn"`
 	RegionalRoutingOn           bool `json:"regionalRoutingOn"`
 	PostureIdentityCollectionOn bool `json:"postureIdentityCollectionOn"`
+	HTTPSEnabled                bool `json:"httpsEnabled"`
 }
 
 // UpdateTailnetSettingsRequest is a request to update the settings of a tailnet.
@@ -47,6 +48,7 @@ type UpdateTailnetSettingsRequest struct {
 	NetworkFlowLoggingOn        *bool `json:"networkFlowLoggingOn,omitempty"`
 	RegionalRoutingOn           *bool `json:"regionalRoutingOn,omitempty"`
 	PostureIdentityCollectionOn *bool `json:"postureIdentityCollectionOn,omitempty"`
+	HTTPSEnabled                *bool `json:"httpsEnabled,omitempty"`
 }
 
 // RoleAllowedToJoinExternalTailnets constrains which users are allowed to join external tailnets
