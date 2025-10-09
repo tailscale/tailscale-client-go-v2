@@ -84,7 +84,7 @@ type Device struct {
 	IsEphemeral               bool     `json:"isEphemeral"`
 	IsExternal                bool     `json:"isExternal"`
 	ConnectedToControl        bool     `json:"connectedToControl"`
-	LastSeen                  Time     `json:"lastSeen"`
+	LastSeen                  *Time    `json:"lastSeen"` // Will be nil if ConnectedToControl is true.
 	MachineKey                string   `json:"machineKey"`
 	NodeKey                   string   `json:"nodeKey"`
 	OS                        string   `json:"os"`

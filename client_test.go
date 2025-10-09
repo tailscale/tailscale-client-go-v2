@@ -68,3 +68,7 @@ func Test_BuildTailnetURLDefault(t *testing.T) {
 	require.NoError(t, err)
 	assert.EqualValues(t, expected.String(), actual.String())
 }
+
+func ptrTo[T any](v T) *T {
+	return &v
+}

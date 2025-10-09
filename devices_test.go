@@ -58,7 +58,7 @@ func TestClient_Devices_Get(t *testing.T) {
 		Hostname:                  "test",
 		IsExternal:                false,
 		ConnectedToControl:        false,
-		LastSeen:                  Time{time.Date(2022, 3, 9, 20, 3, 42, 0, time.UTC)},
+		LastSeen:                  ptrTo(Time{time.Date(2022, 3, 9, 20, 3, 42, 0, time.UTC)}),
 		MachineKey:                "mkey:test",
 		NodeKey:                   "nodekey:test",
 		IsEphemeral:               false,
@@ -167,7 +167,7 @@ func TestClient_Devices_List(t *testing.T) {
 				IsEphemeral:               false,
 				IsExternal:                false,
 				ConnectedToControl:        false,
-				LastSeen:                  Time{time.Date(2022, 3, 9, 20, 3, 42, 0, time.UTC)},
+				LastSeen:                  ptrTo(Time{time.Date(2022, 3, 9, 20, 3, 42, 0, time.UTC)}),
 				MachineKey:                "mkey:test",
 				NodeKey:                   "nodekey:test",
 				OS:                        "windows",
@@ -242,9 +242,9 @@ func TestDevices_Unmarshal(t *testing.T) {
 					IsExternal:         true,
 					KeyExpiryDisabled:  true,
 					ConnectedToControl: false,
-					LastSeen: Time{
+					LastSeen: ptrTo(Time{
 						time.Date(2022, 4, 15, 13, 24, 40, 0, time.UTC),
-					},
+					}),
 					MachineKey:      "",
 					Name:            "hello.example.com",
 					NodeKey:         "nodekey:30dc3c061ac8b33fdc6d88a4a67b053b01b56930d78cae0cf7a164411d424c0d",
@@ -270,9 +270,9 @@ func TestDevices_Unmarshal(t *testing.T) {
 					IsExternal:         false,
 					KeyExpiryDisabled:  true,
 					ConnectedToControl: false,
-					LastSeen: Time{
+					LastSeen: ptrTo(Time{
 						time.Date(2022, 4, 15, 13, 25, 21, 0, time.UTC),
-					},
+					}),
 					MachineKey:      "mkey:30dc3c061ac8b33fdc6d88a4a67b053b01b56930d78cae0cf7a164411d424c0d",
 					Name:            "foo.example.com",
 					NodeKey:         "nodekey:30dc3c061ac8b33fdc6d88a4a67b053b01b56930d78cae0cf7a164411d424c0d",
