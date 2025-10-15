@@ -54,6 +54,99 @@ func main() {
 }
 ```
 
+## Example (Using Identity Federation)
+
+### With a static ID token:
+
+For static ID tokens, simply return the same token value each time. Note that if both the Tailscale API access token
+and the ID token expire, the client must be recreated with a fresh ID token to reauthenticate.
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+
+	"tailscale.com/client/tailscale/v2"
+)
+
+func main() {
+	httpClient, err := tailscale.IdentityFederationConfig{
+		ClientID: os.Getenv("TAILSCALE_CLIENT_ID"),
+		IDTokenFunc: func() (string, error) {
+			return os.Getenv("ID_TOKEN"), nil
+		},
+	}.HTTPClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := &tailscale.Client{
+		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
+		HTTP:    httpClient,
+	}
+
+	devices, err := client.Devices().List(context.Background())
+}
+```
+
+### With a dynamic ID token generator
+
+For long-running applications, instruct the client on how to fetch ID tokens from your IdP so the client can reauthenticate
+automatically when the Tailscale API access token and ID token expire:
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"strings"
+
+	"tailscale.com/client/tailscale/v2"
+)
+
+func main() {
+	httpClient, err := tailscale.IdentityFederationConfig{
+		ClientID: os.Getenv("TAILSCALE_CLIENT_ID"),
+		IDTokenFunc: func() (string, error) {
+			resp, err := http.Get("https://my-idp.com/id-token")
+			if err != nil {
+				return "", fmt.Errorf("failed to fetch ID token: %w", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != http.StatusOK {
+				return "", fmt.Errorf("failed to fetch ID token: status %d", resp.StatusCode)
+			}
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return "", fmt.Errorf("failed to read ID token response: %w", err)
+			}
+
+			return strings.TrimSpace(string(body)), nil
+		},
+	}.HTTPClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := &tailscale.Client{
+		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
+		HTTP:    httpClient,
+	}
+
+	devices, err := client.Devices().List(context.Background())
+}
+```
+
 ## Releasing
 
 Pushing a tag of the format `vX.Y.Z` will trigger the [release workflow](./.github/workflows/release.yml) which uses
