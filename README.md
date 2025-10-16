@@ -42,14 +42,12 @@ import (
 
 func main() {
 	client := &tailscale.Client{
-		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
-		HTTP:    tailscale.OAuthConfig{
-			ClientID:     os.Getenv("TAILSCALE_OAUTH_CLIENT_ID"),
-			ClientSecret: os.Getenv("TAILSCALE_OAUTH_CLIENT_SECRET"),
-			Scopes:       []string{"all:write"},
-		}.HTTPClient(),
+		Tailnet:      os.Getenv("TAILSCALE_TAILNET"),
+		ClientID:     os.Getenv("TAILSCALE_OAUTH_CLIENT_ID"),
+		ClientSecret: os.Getenv("TAILSCALE_OAUTH_CLIENT_SECRET"),
+		Scopes:       []string{"all:write"},
 	}
-	
+
 	devices, err := client.Devices().List(context.Background())
 }
 ```
@@ -66,26 +64,18 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 
 	"tailscale.com/client/tailscale/v2"
 )
 
 func main() {
-	httpClient, err := tailscale.IdentityFederationConfig{
+	client := &tailscale.Client{
+		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
 		ClientID: os.Getenv("TAILSCALE_CLIENT_ID"),
 		IDTokenFunc: func() (string, error) {
 			return os.Getenv("ID_TOKEN"), nil
 		},
-	}.HTTPClient()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	client := &tailscale.Client{
-		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
-		HTTP:    httpClient,
 	}
 
 	devices, err := client.Devices().List(context.Background())
@@ -104,7 +94,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -113,7 +102,8 @@ import (
 )
 
 func main() {
-	httpClient, err := tailscale.IdentityFederationConfig{
+	client := &tailscale.Client{
+		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
 		ClientID: os.Getenv("TAILSCALE_CLIENT_ID"),
 		IDTokenFunc: func() (string, error) {
 			resp, err := http.Get("https://my-idp.com/id-token")
@@ -133,14 +123,6 @@ func main() {
 
 			return strings.TrimSpace(string(body)), nil
 		},
-	}.HTTPClient()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	client := &tailscale.Client{
-		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
-		HTTP:    httpClient,
 	}
 
 	devices, err := client.Devices().List(context.Background())

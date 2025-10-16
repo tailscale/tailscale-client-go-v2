@@ -15,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,9 +28,6 @@ type Client struct {
 	BaseURL *url.URL
 	// UserAgent configures the User-Agent HTTP header for requests. Defaults to "tailscale-client-go".
 	UserAgent string
-	// APIKey allows specifying an APIKey to use for authentication.
-	// To use OAuth Client credentials, construct an [http.Client] using [OAuthConfig] and specify that below.
-	APIKey string
 	// Tailnet allows specifying a specific tailnet by name, to which this Client will connect by default.
 	// If Tailnet is left blank, the client will connect to default tailnet based on the client's credential,
 	// using the "-" (dash) default tailnet path.
@@ -38,6 +36,29 @@ type Client struct {
 	// HTTP is the [http.Client] to use for requests to the API server.
 	// If not specified, a new [http.Client] with a Timeout of 1 minute will be used.
 	HTTP *http.Client
+
+	// APIKey allows specifying an APIKey to use for authentication.
+	// To use OAuth Client credentials, set ClientID and ClientSecret instead.
+	// To use identity federation, set ClientID and IDTokenFunc instead.
+	APIKey string
+	// ClientID is the ID of the Tailscale OAuth client.
+	// When set along with ClientSecret, the client will use OAuth client credentials for authentication.
+	// When set along with IDTokenFunc, the client will use identity federation for authentication.
+	// For OAuth, if empty and ClientSecret is provided, the ClientID will be derived from the ClientSecret.
+	// Overwrites APIKey if set.
+	ClientID string
+	// ClientSecret is the client secret of the OAuth client.
+	// When set, the client will use OAuth client credentials for authentication.
+	ClientSecret string
+	// IDTokenFunc returns an identity token from the IdP to exchange for a Tailscale API token.
+	// The client calls this function to obtain a fresh ID token and reauthenticate when the API token
+	// and cached ID token have expired. For static tokens, return the token directly. If a static token
+	// expires, the client cannot automatically refresh the API token; the consumer is responsible to create a new client
+	// with a fresh ID token.
+	IDTokenFunc func() (string, error)
+	// Scopes are the scopes to request when generating tokens for the OAuth client.
+	// Only used when ClientSecret is set.
+	Scopes []string
 
 	initOnce sync.Once
 
@@ -71,6 +92,9 @@ const defaultContentType = "application/json"
 const defaultHttpClientTimeout = time.Minute
 const defaultUserAgent = "tailscale-client-go"
 
+// defaultClientID is a fallback if we failed to derive the real ClientID from the ClientSecret
+const defaultClientID = "k1234DEVEL"
+
 var defaultBaseURL *url.URL
 
 func init() {
@@ -97,6 +121,35 @@ func (c *Client) init() {
 		if c.Tailnet == "" {
 			c.Tailnet = "-"
 		}
+
+		var underlyingTransport http.RoundTripper
+		if c.HTTP.Transport != nil {
+			underlyingTransport = c.HTTP.Transport
+		} else {
+			underlyingTransport = http.DefaultTransport
+		}
+
+		if c.ClientID != "" && c.IDTokenFunc != nil {
+			c.HTTP.Transport = newIdentityFederationTransport(
+				underlyingTransport,
+				c.BaseURL.String(),
+				c.ClientID,
+				c.IDTokenFunc,
+			)
+		} else if c.ClientSecret != "" {
+			if c.ClientID == "" {
+				c.ClientID = deriveClientID(c.ClientSecret)
+			}
+
+			c.HTTP.Transport = newOAuthTransport(
+				underlyingTransport,
+				c.BaseURL.String(),
+				c.ClientID,
+				c.ClientSecret,
+				c.Scopes,
+			)
+		}
+
 		c.contacts = &ContactsResource{c}
 		c.devicePosture = &DevicePostureResource{c}
 		c.devices = &DevicesResource{c}
@@ -378,4 +431,16 @@ func ErrorData(err error) []APIErrorData {
 // Pointers are used in PATCH requests to distinguish between specified and unspecified values.
 func PointerTo[T any](value T) *T {
 	return &value
+}
+
+// deriveClientID extracts the ClientID from a ClientSecret.
+// It expects the ClientSecret to be in the format "tskey-client-{clientID}-{suffix}".
+// If the derived ClientID ends up equal to the ClientSecret because the value does not have the expecyed shape,
+// it returns a dummy defaultClientID to prevent logging the ClientSecret value by logging the ClientID by mistake.
+func deriveClientID(clientSecret string) string {
+	clientID, _, _ := strings.Cut(strings.TrimPrefix(clientSecret, "tskey-client-"), "-")
+	if clientID == clientSecret {
+		return defaultClientID
+	}
+	return clientID
 }

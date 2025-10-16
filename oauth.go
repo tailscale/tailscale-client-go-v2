@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
 
@@ -23,6 +24,7 @@ type OAuthConfig struct {
 }
 
 // HTTPClient constructs an HTTP client that authenticates using OAuth.
+// @deprecated Use Client.ClientSecret instead to configure OAuth authentication.
 func (ocfg OAuthConfig) HTTPClient() *http.Client {
 	baseURL := ocfg.BaseURL
 	if baseURL == "" {
@@ -39,4 +41,31 @@ func (ocfg OAuthConfig) HTTPClient() *http.Client {
 	client := oauthConfig.Client(context.Background())
 	client.Timeout = defaultHttpClientTimeout
 	return client
+}
+
+// oauthTokenSource implements oauth2.TokenSource using client credentials flow.
+type oauthTokenSource struct {
+	config clientcredentials.Config
+}
+
+// Token implements oauth2.TokenSource by fetching a token using client credentials.
+func (s *oauthTokenSource) Token() (*oauth2.Token, error) {
+	return s.config.Token(context.Background())
+}
+
+// newOAuthTransport creates an http.RoundTripper that handles OAuth client credentials authentication.
+func newOAuthTransport(baseTransport http.RoundTripper, baseURL, clientID, clientSecret string, scopes []string) http.RoundTripper {
+	config := clientcredentials.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Scopes:       scopes,
+		TokenURL:     baseURL + "/api/v2/oauth/token",
+	}
+
+	tokenSource := &oauthTokenSource{config: config}
+
+	return &oauth2.Transport{
+		Source: oauth2.ReuseTokenSource(nil, tokenSource),
+		Base:   baseTransport,
+	}
 }

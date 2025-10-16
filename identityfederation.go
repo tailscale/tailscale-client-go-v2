@@ -14,21 +14,9 @@ import (
 	"strings"
 	"sync"
 	"time"
-)
 
-// IdentityFederationConfig encapsulates the configuration needed to obtain a Tailscale API token via workload identity federation.
-type IdentityFederationConfig struct {
-	// ClientID is the client ID of the federated identity Tailscale OAuth client.
-	ClientID string
-	// IDTokenFunc returns an identity token from the IdP to exchange for a Tailscale API token.
-	// The client calls this function to obtain a fresh ID token and reauthenticate when the API token
-	// and cached ID token have expired. For static tokens, return the token directly. If a static token
-	// expires, the client cannot automatically refresh the API token; the consumer is responsible to create a new client
-	// with a fresh ID token.
-	IDTokenFunc func() (string, error)
-	// BaseURL is an optional base URL for the API server to which we'll connect. Defaults to https://api.tailscale.com.
-	BaseURL string
-}
+	"golang.org/x/oauth2"
+)
 
 // TokenExchangeResponse represents the response from the Tailscale token exchange endpoint.
 type TokenExchangeResponse struct {
@@ -43,114 +31,91 @@ type jwtClaims struct {
 	Exp int64 `json:"exp"`
 }
 
-// tokenTransport implements http.RoundTripper and handles token exchange and caching.
-type tokenTransport struct {
-	config    IdentityFederationConfig
-	transport http.RoundTripper
+// identityFederationTokenSource implements oauth2.TokenSource using identity federation.
+type identityFederationTokenSource struct {
+	transport   http.RoundTripper
+	baseURL     string
+	clientID    string
+	idTokenFunc func() (string, error)
 
-	idToken        string
-	apiAccessToken string
-	expiresAt      time.Time
-
-	tokenRefreshMu sync.Mutex
+	mu      sync.Mutex // protects the below fields
+	idToken string
+	tokenSource oauth2.TokenSource
 }
 
-// HTTPClient constructs an HTTP client that authenticates using identity federation.
-// The client automatically handles token exchange and caching.
-func (c IdentityFederationConfig) HTTPClient() (*http.Client, error) {
-	if c.ClientID == "" {
-		return nil, fmt.Errorf("ClientID is required")
-	}
-	if c.IDTokenFunc == nil {
-		return nil, fmt.Errorf("IDTokenFunc is required")
-	}
-	if c.BaseURL == "" {
-		c.BaseURL = defaultBaseURL.String()
-	}
+// Token implements oauth2.TokenSource by exchanging an ID token for an API access token.
+func (s *identityFederationTokenSource) Token() (*oauth2.Token, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	transport := &tokenTransport{
-		config:    c,
-		transport: http.DefaultTransport,
-	}
-
-	// Perform initial token exchange to validate configuration early
-	if err := transport.refreshToken(context.Background()); err != nil {
-		return nil, err
-	}
-
-	return &http.Client{
-		Transport: transport,
-		Timeout:   defaultHttpClientTimeout,
-	}, nil
-}
-
-// RoundTrip executes a single HTTP transaction, refreshing the API access token if necessary.
-func (t *tokenTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	if t.apiAccessToken == "" || time.Now().After(t.expiresAt) {
-		if err := t.refreshToken(req.Context()); err != nil {
-			return nil, err
+	if s.tokenSource != nil {
+		token , err := s.tokenSource.Token()
+		if err == nil && token.Valid() {
+			return token, nil
 		}
 	}
 
-	reqClone := req.Clone(req.Context())
-	reqClone.Header.Set("Authorization", "Bearer "+t.apiAccessToken)
-
-	return t.transport.RoundTrip(reqClone)
-}
-
-// refreshToken performs the token exchange and updates the cached token.
-func (t *tokenTransport) refreshToken(ctx context.Context) error {
-	t.tokenRefreshMu.Lock()
-	defer t.tokenRefreshMu.Unlock()
-
-	if t.idToken == "" || validateIDToken(t.idToken) != nil {
-		idToken, err := t.config.IDTokenFunc()
+	if s.idToken == "" || validateIDToken(s.idToken) != nil {
+		idToken, err := s.idTokenFunc()
 		if err != nil {
-			return fmt.Errorf("failed to fetch ID token: %w", err)
+			return nil, fmt.Errorf("failed to fetch ID token: %w", err)
 		}
 		if err := validateIDToken(idToken); err != nil {
-			return fmt.Errorf("fetched ID token is invalid: %w", err)
+			return nil, fmt.Errorf("fetched ID token is invalid: %w", err)
 		}
-		t.idToken = idToken
+		s.idToken = idToken
 	}
 
-	exchangeURL := fmt.Sprintf("%s/api/v2/oauth/token-exchange", t.config.BaseURL)
+	exchangeURL := fmt.Sprintf("%s/api/v2/oauth/token-exchange", s.baseURL)
 	values := url.Values{
-		"client_id": {t.config.ClientID},
-		"jwt":       {t.idToken},
+		"client_id": {s.clientID},
+		"jwt":       {s.idToken},
 	}.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, exchangeURL, strings.NewReader(values))
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, exchangeURL, strings.NewReader(values))
 	if err != nil {
-		return fmt.Errorf("failed to create token exchange request: %w", err)
+		return nil, fmt.Errorf("failed to create token exchange request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	client := &http.Client{
-		Transport: t.transport,
-		Timeout:   10 * time.Second,
-	}
-	resp, err := client.Do(req)
+	resp, err := s.transport.RoundTrip(req)
 	if err != nil {
-		return fmt.Errorf("unexpected token exchange request error: %w", err)
+		return nil, fmt.Errorf("unexpected token exchange request error: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusBadRequest {
 		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("token exchange failed with status %d: %s", resp.StatusCode, string(b))
+		return nil, fmt.Errorf("token exchange failed with status %d: %s", resp.StatusCode, string(b))
 	}
 
 	var tokenResp TokenExchangeResponse
 	if err = json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
-		return fmt.Errorf("failed to decode token exchange response: %w", err)
+		return nil, fmt.Errorf("failed to decode token exchange response: %w", err)
 	}
 
-	t.apiAccessToken = tokenResp.AccessToken
-	// Set expiration with a 5-minute buffer for safety
-	t.expiresAt = time.Now().Add(time.Duration(tokenResp.ExpiresIn)*time.Second - 5*time.Minute)
+	s.tokenSource = oauth2.StaticTokenSource(&oauth2.Token{
+		AccessToken: tokenResp.AccessToken,
+		TokenType:   tokenResp.TokenType,
+		Expiry:      time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second),
+	})
 
-	return nil
+	return s.tokenSource.Token()
+}
+
+// newIdentityFederationTransport creates an http.RoundTripper that handles identity federation authentication.
+func newIdentityFederationTransport(baseTransport http.RoundTripper, baseURL, clientID string, idTokenFunc func() (string, error)) http.RoundTripper {
+	tokenSource := &identityFederationTokenSource{
+		transport:   baseTransport,
+		baseURL:     baseURL,
+		clientID:    clientID,
+		idTokenFunc: idTokenFunc,
+	}
+
+	return &oauth2.Transport{
+		Source: oauth2.ReuseTokenSource(nil, tokenSource),
+		Base:   baseTransport,
+	}
 }
 
 // validateIDToken decodes and validates the ID token's expiration claim
