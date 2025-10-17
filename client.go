@@ -21,6 +21,14 @@ import (
 	"github.com/tailscale/hujson"
 )
 
+// Auth is a pluggable mechanism for authenticating requests.
+type Auth interface {
+	// HTTPClient builds an http.Client that uses orig as a starting point and
+	// adds its own authentication to outgoing requests. baseURL is the base URL
+	// of the API server to which we will be authenticating.
+	HTTPClient(orig *http.Client, baseURL string) *http.Client
+}
+
 // Client is used to perform actions against the Tailscale API.
 type Client struct {
 	// BaseURL is the base URL for accessing the Tailscale API server. Defaults to https://api.tailscale.com.
@@ -28,8 +36,12 @@ type Client struct {
 	// UserAgent configures the User-Agent HTTP header for requests. Defaults to "tailscale-client-go".
 	UserAgent string
 	// APIKey allows specifying an APIKey to use for authentication.
-	// To use OAuth Client credentials, construct an [http.Client] using [OAuthConfig] and specify that below.
+	// To use OAuth Client credentials, specify OAuth in the Auth field instead.
+	// To use Identity Federation, specify IdentityFederation in the Auth field instead.
 	APIKey string
+	// Auth specifies a mechanism for adding authentication to outgoing requests.
+	// If provided, APIKey is ignored.
+	Auth Auth
 	// Tailnet allows specifying a specific tailnet by name, to which this Client will connect by default.
 	// If Tailnet is left blank, the client will connect to default tailnet based on the client's credential,
 	// using the "-" (dash) default tailnet path.
@@ -96,6 +108,10 @@ func (c *Client) init() {
 		}
 		if c.Tailnet == "" {
 			c.Tailnet = "-"
+		}
+		if c.Auth != nil {
+			c.APIKey = ""
+			c.HTTP = c.Auth.HTTPClient(c.HTTP, c.BaseURL.String())
 		}
 		c.contacts = &ContactsResource{c}
 		c.devicePosture = &DevicePostureResource{c}
