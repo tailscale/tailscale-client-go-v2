@@ -43,11 +43,40 @@ import (
 func main() {
 	client := &tailscale.Client{
 		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
-		HTTP:    tailscale.OAuthConfig{
+		Auth: &tailscale.OAuth{
 			ClientID:     os.Getenv("TAILSCALE_OAUTH_CLIENT_ID"),
 			ClientSecret: os.Getenv("TAILSCALE_OAUTH_CLIENT_SECRET"),
 			Scopes:       []string{"all:write"},
-		}.HTTPClient(),
+		},
+	}
+	
+	devices, err := client.Devices().List(context.Background())
+}
+```
+
+## Example (Using Your Own Authentication Mechanism)
+
+```go
+package main
+
+import (
+	"context"
+	"os"
+
+	"tailscale.com/client/tailscale/v2"
+)
+
+type MyAuth struct {...}
+
+func (a *MyAuth) HTTPClient(orig *http.Client, baseURL string) *http.Client {
+	// build an HTTP client that adds authentication to outgoing requests
+	// see tailscale.OAuth for an example.
+}
+
+func main() {
+	client := &tailscale.Client{
+		Tailnet: os.Getenv("TAILSCALE_TAILNET"),
+		Auth: &MyAuth{...},
 	}
 	
 	devices, err := client.Devices().List(context.Background())
