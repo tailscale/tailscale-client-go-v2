@@ -93,6 +93,7 @@ type Device struct {
 	UpdateAvailable           bool     `json:"updateAvailable"`
 
 	// The below are only included in listings when querying `all` fields.
+	SSHEnabled         bool                `json:"sshEnabled"`
 	AdvertisedRoutes   []string            `json:"AdvertisedRoutes"`
 	EnabledRoutes      []string            `json:"enabledRoutes"`
 	ClientConnectivity *ClientConnectivity `json:"clientConnectivity"`
