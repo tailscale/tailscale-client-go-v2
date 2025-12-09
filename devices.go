@@ -67,6 +67,12 @@ type ClientConnectivity struct {
 	ClientSupports ClientSupports        `json:"clientSupports"`
 }
 
+type Distro struct {
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	CodeName string `json:"codeName"`
+}
+
 type Device struct {
 	Addresses                 []string `json:"addresses"`
 	Name                      string   `json:"name"`
@@ -97,6 +103,7 @@ type Device struct {
 	AdvertisedRoutes   []string            `json:"AdvertisedRoutes"`
 	EnabledRoutes      []string            `json:"enabledRoutes"`
 	ClientConnectivity *ClientConnectivity `json:"clientConnectivity"`
+	Distro             *Distro             `json:"distro"`
 }
 
 type DevicePostureAttributes struct {
