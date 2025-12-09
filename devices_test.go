@@ -66,7 +66,7 @@ func TestClient_Devices_Get(t *testing.T) {
 		TailnetLockError:          "test error",
 		TailnetLockKey:            "tlpub:test",
 		UpdateAvailable:           true,
-		SSHEnabled: 			   false,
+		SSHEnabled:                false,
 		AdvertisedRoutes:          []string{"127.0.0.1", "127.0.0.2"},
 		EnabledRoutes:             []string{"127.0.0.1"},
 		ClientConnectivity: &ClientConnectivity{
@@ -90,6 +90,11 @@ func TestClient_Devices_Get(t *testing.T) {
 				UDP:         false,
 				UPNP:        false,
 			},
+		},
+		Distro: &Distro{
+			Name:     "ubuntu",
+			Version:  "25.04",
+			CodeName: "plucky",
 		},
 	}
 
@@ -173,7 +178,7 @@ func TestClient_Devices_List(t *testing.T) {
 				NodeKey:                   "nodekey:test",
 				OS:                        "windows",
 				UpdateAvailable:           true,
-				SSHEnabled: 			   false,
+				SSHEnabled:                false,
 				AdvertisedRoutes:          []string{"127.0.0.1", "127.0.0.2"},
 				EnabledRoutes:             []string{"127.0.0.1"},
 				ClientConnectivity: &ClientConnectivity{
@@ -197,6 +202,11 @@ func TestClient_Devices_List(t *testing.T) {
 						UDP:         false,
 						UPNP:        false,
 					},
+				},
+				Distro: &Distro{
+					Name:     "ubuntu",
+					Version:  "25.04",
+					CodeName: "plucky",
 				},
 			},
 		},
