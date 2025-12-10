@@ -184,6 +184,141 @@ func TestClient_CreateOAuthClient(t *testing.T) {
 	assert.EqualValues(t, "", actualReq.Description)
 }
 
+func TestClient_SetOAuthClient(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	expected := &Key{
+		ID:            "test",
+		KeyType:       "client",
+		Key:           "thisisatestclient",
+		ExpirySeconds: nil,
+		Created:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Scopes:        []string{"all:read"},
+		Tags:          []string{"tag:test"},
+		Description:   "",
+	}
+
+	server.ResponseBody = expected
+
+	actual, err := client.Keys().SetOAuthClient(context.Background(), "test", SetOAuthClientRequest{
+		Scopes: []string{"all:read"},
+		Tags:   []string{"tag:test"},
+	})
+	assert.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+	assert.Equal(t, http.MethodPut, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/keys/test", server.Path)
+
+	var actualReq createOAuthClientWithKeyTypeRequest
+	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
+	assert.EqualValues(t, "client", actualReq.KeyType)
+	assert.EqualValues(t, 1, len(actualReq.Scopes))
+	assert.EqualValues(t, "all:read", actualReq.Scopes[0])
+	assert.EqualValues(t, 1, len(actualReq.Tags))
+	assert.EqualValues(t, "tag:test", actualReq.Tags[0])
+	assert.EqualValues(t, "", actualReq.Description)
+}
+
+func TestClient_CreateFederatedIdentity(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	expected := &Key{
+		ID:            "test",
+		KeyType:       "federated",
+		Key:           "thisisatestclient",
+		ExpirySeconds: nil,
+		Created:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Scopes:        []string{"all:read"},
+		Tags:          []string{"tag:test"},
+		Description:   "",
+		Audience:      "exampleaud",
+		Subject:       "examplesubject",
+		CustomClaimRules: map[string]string{
+			"foo": "bar",
+		},
+	}
+
+	server.ResponseBody = expected
+
+	actual, err := client.Keys().CreateFederatedIdentity(context.Background(), CreateFederatedIdentityRequest{
+		Scopes:  []string{"all:read"},
+		Tags:    []string{"tag:test"},
+		Subject: "examplesubject",
+		CustomClaimRules: map[string]string{
+			"foo": "bar",
+		},
+	})
+	assert.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+	assert.Equal(t, http.MethodPost, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/keys", server.Path)
+
+	var actualReq createFederatedIdentityWithKeyTypeRequest
+	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
+	assert.EqualValues(t, "federated", actualReq.KeyType)
+	assert.EqualValues(t, 1, len(actualReq.Scopes))
+	assert.EqualValues(t, "all:read", actualReq.Scopes[0])
+	assert.EqualValues(t, 1, len(actualReq.Tags))
+	assert.EqualValues(t, "tag:test", actualReq.Tags[0])
+	assert.EqualValues(t, "", actualReq.Description)
+}
+
+func TestClient_SetFederatedIdentity(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	expected := &Key{
+		ID:            "test",
+		KeyType:       "federated",
+		Key:           "thisisatestclient",
+		ExpirySeconds: nil,
+		Created:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Expires:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+		Scopes:        []string{"all:read"},
+		Tags:          []string{"tag:test"},
+		Description:   "",
+		Audience:      "exampleaud",
+		Subject:       "examplesubject",
+		CustomClaimRules: map[string]string{
+			"foo": "bar",
+		},
+	}
+
+	server.ResponseBody = expected
+
+	actual, err := client.Keys().SetFederatedIdentity(context.Background(), "test", SetFederatedIdentityRequest{
+		Scopes:  []string{"all:read"},
+		Tags:    []string{"tag:test"},
+		Subject: "examplesubject",
+		CustomClaimRules: map[string]string{
+			"foo": "bar",
+		},
+	})
+	assert.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+	assert.Equal(t, http.MethodPut, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/keys/test", server.Path)
+
+	var actualReq createFederatedIdentityWithKeyTypeRequest
+	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
+	assert.EqualValues(t, "federated", actualReq.KeyType)
+	assert.EqualValues(t, 1, len(actualReq.Scopes))
+	assert.EqualValues(t, "all:read", actualReq.Scopes[0])
+	assert.EqualValues(t, 1, len(actualReq.Tags))
+	assert.EqualValues(t, "tag:test", actualReq.Tags[0])
+	assert.EqualValues(t, "", actualReq.Description)
+}
+
 func TestClient_GetKey(t *testing.T) {
 	t.Parallel()
 
