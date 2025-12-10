@@ -45,21 +45,71 @@ type createOAuthClientWithKeyTypeRequest struct {
 	CreateOAuthClientRequest
 }
 
+// SetOAuthClientRequest describes the definition of an existing OAuth client to
+// set (wholesale update) the configuration of.
+type SetOAuthClientRequest struct {
+	Scopes      []string `json:"scopes"`
+	Tags        []string `json:"tags"`
+	Description string   `json:"description"`
+}
+
+type setOAuthClientWithKeyTypeRequest struct {
+	KeyType string `json:"keyType"`
+	SetOAuthClientRequest
+}
+
+// CreateFederatedIdentityRequest describes the definition of a federated identity to create.
+type CreateFederatedIdentityRequest struct {
+	Scopes           []string          `json:"scopes"`
+	Tags             []string          `json:"tags"`
+	Audience         string            `json:"audience"`
+	Issuer           string            `json:"issuer"`
+	Subject          string            `json:"subject"`
+	CustomClaimRules map[string]string `json:"customClaimRules"`
+	Description      string            `json:"description"`
+}
+
+type createFederatedIdentityWithKeyTypeRequest struct {
+	KeyType string `json:"keyType"`
+	CreateFederatedIdentityRequest
+}
+
+// SetFederatedIdentityRequest describes the definition of a federated identity to create.
+type SetFederatedIdentityRequest struct {
+	Scopes           []string          `json:"scopes"`
+	Tags             []string          `json:"tags"`
+	Audience         string            `json:"audience"`
+	Issuer           string            `json:"issuer"`
+	Subject          string            `json:"subject"`
+	CustomClaimRules map[string]string `json:"customClaimRules"`
+	Description      string            `json:"description"`
+}
+
+type setFederatedIdentityWithKeyTypeRequest struct {
+	KeyType string `json:"keyType"`
+	SetFederatedIdentityRequest
+}
+
 // Key describes an authentication key within the tailnet.
 type Key struct {
-	ID            string          `json:"id"`
-	KeyType       string          `json:"keyType"`
-	Key           string          `json:"key"`
-	Description   string          `json:"description"`
-	ExpirySeconds *time.Duration  `json:"expirySeconds"`
-	Created       time.Time       `json:"created"`
-	Expires       time.Time       `json:"expires"`
-	Revoked       time.Time       `json:"revoked"`
-	Invalid       bool            `json:"invalid"`
-	Capabilities  KeyCapabilities `json:"capabilities"`
-	Scopes        []string        `json:"scopes,omitempty"`
-	Tags          []string        `json:"tags,omitempty"`
-	UserID        string          `json:"userId"`
+	ID               string            `json:"id"`
+	KeyType          string            `json:"keyType"`
+	Key              string            `json:"key"`
+	Description      string            `json:"description"`
+	ExpirySeconds    *time.Duration    `json:"expirySeconds"`
+	Created          time.Time         `json:"created"`
+	Updated          time.Time         `json:"updated"`
+	Expires          time.Time         `json:"expires"`
+	Revoked          time.Time         `json:"revoked"`
+	Invalid          bool              `json:"invalid"`
+	Capabilities     KeyCapabilities   `json:"capabilities"`
+	Scopes           []string          `json:"scopes,omitempty"`
+	Tags             []string          `json:"tags,omitempty"`
+	UserID           string            `json:"userId"`
+	Audience         string            `json:"audience"`
+	Issuer           string            `json:"issuer"`
+	Subject          string            `json:"subject"`
+	CustomClaimRules map[string]string `json:"customClaimRules"`
 }
 
 // Create creates a new authentication key. Returns the generated [Key] if successful.
@@ -83,6 +133,45 @@ func (kr *KeysResource) CreateOAuthClient(ctx context.Context, ckr CreateOAuthCl
 	req, err := kr.buildRequest(ctx, http.MethodPost, kr.buildTailnetURL("keys"), requestBody(createOAuthClientWithKeyTypeRequest{
 		KeyType:                  "client",
 		CreateOAuthClientRequest: ckr,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return body[Key](kr, req)
+}
+
+// SetOAuthClient sets the configuration for an existing OAuth client. Returns the generated [Key] if successful.
+func (kr *KeysResource) SetOAuthClient(ctx context.Context, id string, skr SetOAuthClientRequest) (*Key, error) {
+	req, err := kr.buildRequest(ctx, http.MethodPut, kr.buildTailnetURL("keys", id), requestBody(setOAuthClientWithKeyTypeRequest{
+		KeyType:               "client",
+		SetOAuthClientRequest: skr,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return body[Key](kr, req)
+}
+
+// CreateFederatedIdentity creates a new federated identity. Returns the generated [Key] if successful.
+func (kr *KeysResource) CreateFederatedIdentity(ctx context.Context, ckr CreateFederatedIdentityRequest) (*Key, error) {
+	req, err := kr.buildRequest(ctx, http.MethodPost, kr.buildTailnetURL("keys"), requestBody(createFederatedIdentityWithKeyTypeRequest{
+		KeyType:                        "federated",
+		CreateFederatedIdentityRequest: ckr,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return body[Key](kr, req)
+}
+
+// SetFederatedIdentity sets the configuration for an existing federated identity. Returns the generated [Key] if successful.
+func (kr *KeysResource) SetFederatedIdentity(ctx context.Context, id string, skr SetFederatedIdentityRequest) (*Key, error) {
+	req, err := kr.buildRequest(ctx, http.MethodPut, kr.buildTailnetURL("keys", id), requestBody(setFederatedIdentityWithKeyTypeRequest{
+		KeyType:                     "federated",
+		SetFederatedIdentityRequest: skr,
 	}))
 	if err != nil {
 		return nil, err
