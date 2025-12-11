@@ -29,6 +29,7 @@ func TestClient_TailnetSettings_Get(t *testing.T) {
 		NetworkFlowLoggingOn:                   true,
 		RegionalRoutingOn:                      true,
 		PostureIdentityCollectionOn:            true,
+		HTTPSEnabled:                           true,
 	}
 	server.ResponseBody = expected
 
@@ -57,6 +58,7 @@ func TestClient_TailnetSettings_Update(t *testing.T) {
 		NetworkFlowLoggingOn:                   PointerTo(true),
 		RegionalRoutingOn:                      PointerTo(true),
 		PostureIdentityCollectionOn:            PointerTo(true),
+		HTTPSEnabled:                           PointerTo(true),
 	}
 	err := client.TailnetSettings().Update(context.Background(), updateRequest)
 	assert.NoError(t, err)

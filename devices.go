@@ -67,6 +67,12 @@ type ClientConnectivity struct {
 	ClientSupports ClientSupports        `json:"clientSupports"`
 }
 
+type Distro struct {
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	CodeName string `json:"codeName"`
+}
+
 type Device struct {
 	Addresses                 []string `json:"addresses"`
 	Name                      string   `json:"name"`
@@ -83,7 +89,8 @@ type Device struct {
 	Hostname                  string   `json:"hostname"`
 	IsEphemeral               bool     `json:"isEphemeral"`
 	IsExternal                bool     `json:"isExternal"`
-	LastSeen                  Time     `json:"lastSeen"`
+	ConnectedToControl        bool     `json:"connectedToControl"`
+	LastSeen                  *Time    `json:"lastSeen"` // Will be nil if ConnectedToControl is true.
 	MachineKey                string   `json:"machineKey"`
 	NodeKey                   string   `json:"nodeKey"`
 	OS                        string   `json:"os"`
@@ -92,9 +99,11 @@ type Device struct {
 	UpdateAvailable           bool     `json:"updateAvailable"`
 
 	// The below are only included in listings when querying `all` fields.
+	SSHEnabled         bool                `json:"sshEnabled"`
 	AdvertisedRoutes   []string            `json:"AdvertisedRoutes"`
 	EnabledRoutes      []string            `json:"enabledRoutes"`
 	ClientConnectivity *ClientConnectivity `json:"clientConnectivity"`
+	Distro             *Distro             `json:"distro"`
 }
 
 type DevicePostureAttributes struct {
