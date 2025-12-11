@@ -77,6 +77,9 @@ type ACL struct {
 	Postures             map[string][]string `json:"postures,omitempty" hujson:"Postures,omitempty"`
 	DefaultSourcePosture []string            `json:"defaultSrcPosture,omitempty" hujson:"DefaultSrcPosture,omitempty"`
 
+	// AttrConfig maps attribute names to their configuration for custom device attributes.
+	AttrConfig map[string]ACLAttrConfig `json:"attrConfig,omitempty" hujson:"AttrConfig,omitempty"`
+
 	// ETag is the etag corresponding to this version of the ACL
 	ETag string `json:"-"`
 }
@@ -169,6 +172,16 @@ type Grant struct {
 	App         map[string][]map[string]any `json:"app,omitempty" hujson:"App,omitempty"`
 	SrcPosture  []string                    `json:"srcPosture,omitempty" hujson:"SrcPosture,omitempty"`
 	Via         []string                    `json:"via,omitempty" hujson:"Via,omitempty"`
+}
+
+// ACLAttrConfig represents configuration for a custom device attribute.
+type ACLAttrConfig struct {
+	// Type can be one of "string", "bool", or "number".
+	Type string `json:"type,omitempty" hujson:"Type,omitempty"`
+	// AllowSetByNode indicates if nodes can set this attribute via LocalAPI.
+	AllowSetByNode bool `json:"allowSetByNode,omitempty" hujson:"AllowSetByNode,omitempty"`
+	// BroadcastToPeers is a list of destinations which should receive this attribute value, e.g. ["tag:admin"].
+	BroadcastToPeers []string `json:"broadcastToPeers,omitempty" hujson:"BroadcastToPeers,omitempty"`
 }
 
 // Get retrieves the [ACL] that is currently set for the tailnet.

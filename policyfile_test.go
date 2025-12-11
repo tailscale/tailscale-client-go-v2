@@ -214,6 +214,22 @@ func TestACL_Unmarshal(t *testing.T) {
 					"tag:monitoring": {"group:devops"},
 					"tag:prod":       {"group:devops"},
 				},
+				AttrConfig: map[string]ACLAttrConfig{
+					"custom:example": {
+						Type:             "string",
+						AllowSetByNode:   true,
+						BroadcastToPeers: []string{"*"},
+					},
+					"custom:secure": {
+						Type:             "bool",
+						AllowSetByNode:   false,
+						BroadcastToPeers: []string{"tag:admin"},
+					},
+					"custom:priority": {
+						Type:           "number",
+						AllowSetByNode: true,
+					},
+				},
 				DERPMap: (*ACLDERPMap)(nil),
 				SSH: []ACLSSH{
 					{
