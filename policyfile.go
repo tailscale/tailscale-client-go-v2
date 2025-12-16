@@ -72,8 +72,6 @@ type ACL struct {
 	Grants              []Grant             `json:"grants,omitempty" hujson:"Grants,omitempty"`
 	IPSets              map[string][]string `json:"ipsets,omitempty" hujson:"IPSets,omitempty"`
 
-	// Postures and DefaultSourcePosture are for an experimental feature and not yet public or documented as of 2023-08-17.
-	// This API is subject to change. Internal bug: corp/13986
 	Postures             map[string][]string `json:"postures,omitempty" hujson:"Postures,omitempty"`
 	DefaultSourcePosture []string            `json:"defaultSrcPosture,omitempty" hujson:"DefaultSrcPosture,omitempty"`
 
@@ -106,16 +104,16 @@ type ACLEntry struct {
 	Destination []string `json:"dst,omitempty" hujson:"Dst,omitempty"`
 	Protocol    string   `json:"proto,omitempty" hujson:"Proto,omitempty"`
 
-	// SourcePosture is for an experimental feature and not yet public or documented as of 2023-08-17.
 	SourcePosture []string `json:"srcPosture,omitempty" hujson:"SrcPosture,omitempty"`
 }
 
 type ACLTest struct {
-	User   string   `json:"user,omitempty" hujson:"User,omitempty"`
-	Allow  []string `json:"allow,omitempty" hujson:"Allow,omitempty"`
-	Deny   []string `json:"deny,omitempty" hujson:"Deny,omitempty"`
-	Source string   `json:"src,omitempty" hujson:"Src,omitempty"`
-	Accept []string `json:"accept,omitempty" hujson:"Accept,omitempty"`
+	User            string         `json:"user,omitempty" hujson:"User,omitempty"`
+	Allow           []string       `json:"allow,omitempty" hujson:"Allow,omitempty"`
+	Deny            []string       `json:"deny,omitempty" hujson:"Deny,omitempty"`
+	Source          string         `json:"src,omitempty" hujson:"Src,omitempty"`
+	Accept          []string       `json:"accept,omitempty" hujson:"Accept,omitempty"`
+	SrcPostureAttrs map[string]any `json:"srcPostureAttrs,omitempty" hujson:"SrcPostureAttrs,omitempty"`
 }
 
 type ACLDERPMap struct {
