@@ -95,6 +95,12 @@ func TestACL_Unmarshal(t *testing.T) {
 						Deny:   []string{"tag:prod:80"},
 						Source: "alice@example.com",
 						Accept: []string{"tag:dev:80"}},
+					{
+						User:            "",
+						Allow:           []string(nil),
+						Source:          "bob@example.com",
+						Accept:          []string{"tag:infra:80"},
+						SrcPostureAttrs: map[string]any{"node:os": "macos"}},
 				},
 				SSH: []ACLSSH{
 					{

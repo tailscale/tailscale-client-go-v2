@@ -23,6 +23,13 @@
       "src": "alice@example.com",
       "accept": ["tag:dev:80"],
       "deny": ["tag:prod:80"]
+    },
+    {
+      "src": "bob@example.com",
+      "accept": ["tag:infra:80"],
+      "srcPostureAttrs": {
+        "node:os": "macos"
+      }
     }
   ],
   "ssh": [
