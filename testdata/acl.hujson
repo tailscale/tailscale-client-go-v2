@@ -57,6 +57,15 @@
       // test that Alice cannot access devices tagged tag:prod on port 80
       "deny": ["tag:prod:80"],
     },
+    {
+      "src": "bob@example.com",
+      // test that bob can access devices tagged tag:infra on port 80 if he has the macos 
+      // posture
+      "accept": ["tag:infra:80"],
+      "srcPostureAttrs": {
+        "node:os": "macos",
+      }
+    },
   ],
   "ssh": [
     {
