@@ -5,6 +5,11 @@
     // Carl is in group:devops
     "group:devops": ["carl@example.com",],
   },
+  "nodeAttrs": [
+  {
+    "target": ["tag:example-range"],
+    "ipPool": ["100.81.0.0/16"],
+  }],
   "acls": [
     // all employees can access their own devices
     { "action": "accept", "src": ["autogroup:members"], "dst": ["autogroup:self:*"] },

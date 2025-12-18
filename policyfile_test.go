@@ -70,6 +70,9 @@ func TestACL_Unmarshal(t *testing.T) {
 						Protocol:    "",
 					},
 				},
+				NodeAttrs: []NodeAttrGrant{
+					{IPPool: []string{"100.81.0.0/16"}, Target: []string{"tag:example-range"}},
+				},
 				Groups: map[string][]string{
 					"group:dev":    {"alice@example.com", "bob@example.com"},
 					"group:devops": {"carl@example.com"},
@@ -209,6 +212,9 @@ func TestACL_Unmarshal(t *testing.T) {
 						Destination: []string{"tag:monitoring:80,443"},
 						Protocol:    "",
 					},
+				},
+				NodeAttrs: []NodeAttrGrant{
+					{IPPool: []string{"100.81.0.0/16"}, Target: []string{"tag:example-range"}},
 				},
 				Groups: map[string][]string{
 					"group:dev":    {"alice@example.com", "bob@example.com"},
