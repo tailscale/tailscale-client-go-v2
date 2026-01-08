@@ -183,30 +183,62 @@ func (dr *DevicesResource) DeletePostureAttribute(ctx context.Context, deviceID,
 	return dr.do(req, nil)
 }
 
+// ListDevicesOptions specifies optional parameters for listing devices.
+type ListDevicesOptions struct {
+	// Fields specifies which fields to include in the response.
+	// Use "all" to include all fields, or "default" (or empty) for standard fields.
+	Fields string
+
+	// Filters specifies filter parameters for listing devices.
+	// Filters are key-value pairs where the key is a top-level device property
+	// (e.g., isEphemeral, tags, hostname, os) and values are exact matches.
+	// Multiple values are combined with AND.
+	//
+	// Example:
+	//  Filters: map[string][]string{
+	//      "isEphemeral": {"true"},
+	//      "os": {"linux"},
+	//      "tags": {"tag:prod", "tag:server"},
+	//  }
+	Filters map[string][]string
+}
+
 // ListWithAllFields lists every [Device] in the tailnet. Each [Device] in
 // the response will have all fields populated.
 func (dr *DevicesResource) ListWithAllFields(ctx context.Context) ([]Device, error) {
-	return dr.list(ctx, true)
+	return dr.ListDevices(ctx, ListDevicesOptions{Fields: "all"})
 }
 
 // List lists every [Device] in the tailnet. The fields `EnabledRoutes`,
 // `AdvertisedRoutes` and `ClientConnectivity` will be omitted from the resulting
 // [Devices]. To get these fields, use `ListWithAllFields`.
 func (dr *DevicesResource) List(ctx context.Context) ([]Device, error) {
-	return dr.list(ctx, false)
+	return dr.ListDevices(ctx, ListDevicesOptions{})
 }
 
-func (dr *DevicesResource) list(ctx context.Context, allFields bool) ([]Device, error) {
+// ListDevices lists devices in the tailnet with the specified options.
+func (dr *DevicesResource) ListDevices(ctx context.Context, opts ListDevicesOptions) ([]Device, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildTailnetURL("devices"))
 	if err != nil {
 		return nil, err
 	}
 
-	if allFields {
-		q := req.URL.Query()
-		q.Set("fields", "all")
-		req.URL.RawQuery = q.Encode()
+	q := req.URL.Query()
+
+	if opts.Fields != "" {
+		q.Set("fields", opts.Fields)
 	}
+
+	// Add filter parameters
+	if opts.Filters != nil {
+		for key, values := range opts.Filters {
+			for _, value := range values {
+				q.Add(key, value)
+			}
+		}
+	}
+
+	req.URL.RawQuery = q.Encode()
 
 	m := make(map[string][]Device)
 	err = dr.do(req, &m)
