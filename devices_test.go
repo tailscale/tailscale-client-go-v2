@@ -512,3 +512,95 @@ func TestClient_UserAgent(t *testing.T) {
 	assert.NoError(t, client.Devices().SetAuthorized(context.Background(), "test", true))
 	assert.Equal(t, "custom-user-agent", server.Header.Get("User-Agent"))
 }
+
+func TestClient_Devices_ListDevices(t *testing.T) {
+	t.Parallel()
+
+	expectedDevices := map[string][]Device{
+		"devices": {
+			{
+				Addresses:   []string{"100.101.102.103"},
+				Name:        "ephemeral-device",
+				ID:          "test1",
+				NodeID:      "nTEST1",
+				Hostname:    "ephemeral",
+				IsEphemeral: true,
+				Tags:        []string{"tag:prod", "tag:server"},
+				OS:          "linux",
+			},
+		},
+	}
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+	server.ResponseBody = expectedDevices
+
+	t.Run("with single filter", func(t *testing.T) {
+		opts := ListDevicesOptions{
+			Filters: map[string][]string{
+				"isEphemeral": {"true"},
+			},
+		}
+		actualDevices, err := client.Devices().ListDevices(context.Background(), opts)
+		assert.NoError(t, err)
+		assert.Equal(t, http.MethodGet, server.Method)
+		assert.Equal(t, "/api/v2/tailnet/example.com/devices", server.Path)
+		assert.Equal(t, "true", server.Query.Get("isEphemeral"))
+		assert.Empty(t, server.Query.Get("fields"))
+		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
+	})
+
+	t.Run("with multiple filters", func(t *testing.T) {
+		opts := ListDevicesOptions{
+			Filters: map[string][]string{
+				"isEphemeral": {"true"},
+				"os":          {"linux"},
+			},
+		}
+		actualDevices, err := client.Devices().ListDevices(context.Background(), opts)
+		assert.NoError(t, err)
+		assert.Equal(t, http.MethodGet, server.Method)
+		assert.Equal(t, "true", server.Query.Get("isEphemeral"))
+		assert.Equal(t, "linux", server.Query.Get("os"))
+		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
+	})
+
+	t.Run("with multiple values for same key", func(t *testing.T) {
+		opts := ListDevicesOptions{
+			Filters: map[string][]string{
+				"tags": {"tag:prod", "tag:server"},
+			},
+		}
+		actualDevices, err := client.Devices().ListDevices(context.Background(), opts)
+		assert.NoError(t, err)
+		assert.Equal(t, http.MethodGet, server.Method)
+		// Query.Get only returns the first value, so we check the full query contains both
+		assert.Contains(t, server.Query, "tags")
+		assert.ElementsMatch(t, []string{"tag:prod", "tag:server"}, server.Query["tags"])
+		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
+	})
+
+	t.Run("with all fields and filter", func(t *testing.T) {
+		opts := ListDevicesOptions{
+			Fields: "all",
+			Filters: map[string][]string{
+				"isEphemeral": {"true"},
+			},
+		}
+		actualDevices, err := client.Devices().ListDevices(context.Background(), opts)
+		assert.NoError(t, err)
+		assert.Equal(t, http.MethodGet, server.Method)
+		assert.Equal(t, "all", server.Query.Get("fields"))
+		assert.Equal(t, "true", server.Query.Get("isEphemeral"))
+		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
+	})
+
+	t.Run("with empty options", func(t *testing.T) {
+		actualDevices, err := client.Devices().ListDevices(context.Background(), ListDevicesOptions{})
+		assert.NoError(t, err)
+		assert.Equal(t, http.MethodGet, server.Method)
+		assert.Equal(t, "/api/v2/tailnet/example.com/devices", server.Path)
+		assert.Empty(t, server.Query.Get("fields"))
+		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
+	})
+}
