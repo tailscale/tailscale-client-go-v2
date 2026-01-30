@@ -3,6 +3,11 @@
     "group:dev": ["alice@example.com", "bob@example.com"],
     "group:devops": ["carl@example.com"]
   },
+  "nodeAttrs": [
+  {
+    "target": ["tag:example-range"],
+    "ipPool": ["100.81.0.0/16"]
+  }],
   "acls": [
     { "action": "accept", "src": ["autogroup:members"], "dst": ["autogroup:self:*"] },
     { "action": "accept", "src": ["group:dev"], "dst": ["tag:dev:*"] },
