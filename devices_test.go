@@ -535,7 +535,7 @@ func TestClient_Devices_ListDevices(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 	server.ResponseBody = expectedDevices
 
-	t.Run("with single filter", func(t *testing.T) {
+	t.Run("single-filter", func(t *testing.T) {
 		opts := ListDevicesOptions{
 			Filters: map[string][]string{
 				"isEphemeral": {"true"},
@@ -550,7 +550,7 @@ func TestClient_Devices_ListDevices(t *testing.T) {
 		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
 	})
 
-	t.Run("with multiple filters", func(t *testing.T) {
+	t.Run("multiple-filters", func(t *testing.T) {
 		opts := ListDevicesOptions{
 			Filters: map[string][]string{
 				"isEphemeral": {"true"},
@@ -565,7 +565,7 @@ func TestClient_Devices_ListDevices(t *testing.T) {
 		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
 	})
 
-	t.Run("with multiple values for same key", func(t *testing.T) {
+	t.Run("single-filter-multiple-values", func(t *testing.T) {
 		opts := ListDevicesOptions{
 			Filters: map[string][]string{
 				"tags": {"tag:prod", "tag:server"},
@@ -580,7 +580,7 @@ func TestClient_Devices_ListDevices(t *testing.T) {
 		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
 	})
 
-	t.Run("with all fields and filter", func(t *testing.T) {
+	t.Run("all-fields-and-filter", func(t *testing.T) {
 		opts := ListDevicesOptions{
 			Fields: "all",
 			Filters: map[string][]string{
@@ -595,7 +595,7 @@ func TestClient_Devices_ListDevices(t *testing.T) {
 		assert.EqualValues(t, expectedDevices["devices"], actualDevices)
 	})
 
-	t.Run("with empty options", func(t *testing.T) {
+	t.Run("empty-opts", func(t *testing.T) {
 		actualDevices, err := client.Devices().ListDevices(context.Background(), ListDevicesOptions{})
 		assert.NoError(t, err)
 		assert.Equal(t, http.MethodGet, server.Method)
