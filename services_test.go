@@ -109,3 +109,73 @@ func TestClient_ListServices(t *testing.T) {
 	assert.Equal(t, http.MethodGet, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/services", server.Path)
 }
+
+func TestClient_ServiceListDevices(t *testing.T) {
+	t.Parallel()
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	expected := []ServiceDeviceStatus{
+		ServiceDeviceStatus{
+			NodeID:        "nTEST0001",
+			ApprovalLevel: "not-approved",
+			Configured:    "ready",
+		},
+		ServiceDeviceStatus{
+			NodeID:        "nTEST0002",
+			ApprovalLevel: "approved:auto",
+			Configured:    "ready",
+		},
+		ServiceDeviceStatus{
+			NodeID:        "nTEST0003",
+			ApprovalLevel: "approved:manual",
+			Configured:    "configured",
+		},
+	}
+	server.ResponseBody = map[string][]ServiceDeviceStatus{
+		"hosts": expected,
+	}
+	actual, err := client.Services().ListDevices(context.Background(), "abcd")
+	assert.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+	assert.Equal(t, http.MethodGet, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/services/abcd/devices", server.Path)
+}
+
+func TestClient_GetServiceDeviceStatus(t *testing.T) {
+	t.Parallel()
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	expected := &ServiceDeviceApprovalStatus{
+		Approved:     true,
+		AutoApproved: false,
+	}
+	server.ResponseBody = expected
+	actual, err := client.Services().GetDeviceApprovalStatus(context.Background(), "abcd", "nTEST0000")
+	assert.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+	assert.Equal(t, http.MethodGet, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/services/abcd/device/nTEST0000", server.Path)
+}
+
+func TestClient_ApproveServiceDevice(t *testing.T) {
+	t.Parallel()
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	expected := &ServiceDeviceApprovalStatus{
+		Approved:     true,
+		AutoApproved: false,
+	}
+	server.ResponseBody = expected
+	actual, err := client.Services().UpdateDeviceApprovalStatus(context.Background(), "abcd", "nTEST0000", true)
+	assert.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+	assert.Equal(t, http.MethodPost, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/services/abcd/device/nTEST0000/approved", server.Path)
+
+	var actualReq deviceApprovalStatusRequest
+	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &actualReq))
+	assert.EqualValues(t, true, actualReq.Approved)
+}
