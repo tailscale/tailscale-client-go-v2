@@ -15,6 +15,8 @@ type DevicePostureResource struct {
 
 const (
 	PostureIntegrationProviderFalcon      PostureIntegrationProvider = "falcon"
+	PostureIntegrationProviderFleet       PostureIntegrationProvider = "fleet"
+	PostureIntegrationProviderHuntress    PostureIntegrationProvider = "huntress"
 	PostureIntegrationProviderIntune      PostureIntegrationProvider = "intune"
 	PostureIntegrationProviderJamfPro     PostureIntegrationProvider = "jamfpro"
 	PostureIntegrationProviderKandji      PostureIntegrationProvider = "kandji"
