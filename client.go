@@ -63,6 +63,7 @@ type Client struct {
 	policyFile      *PolicyFileResource
 	tailnetSettings *TailnetSettingsResource
 	users           *UsersResource
+	vipServices     *VIPServicesResource
 	webhooks        *WebhooksResource
 }
 
@@ -122,6 +123,7 @@ func (c *Client) init() {
 		c.policyFile = &PolicyFileResource{c}
 		c.tailnetSettings = &TailnetSettingsResource{c}
 		c.users = &UsersResource{c}
+		c.vipServices = &VIPServicesResource{c}
 		c.webhooks = &WebhooksResource{c}
 	})
 }
@@ -178,6 +180,12 @@ func (c *Client) TailnetSettings() *TailnetSettingsResource {
 func (c *Client) Users() *UsersResource {
 	c.init()
 	return c.users
+}
+
+// VIPServices provides access to https://tailscale.com/api#tag/vipservices.
+func (c *Client) VIPServices() *VIPServicesResource {
+	c.init()
+	return c.vipServices
 }
 
 // Webhooks provides access to https://tailscale.com/api#tag/webhooks.
