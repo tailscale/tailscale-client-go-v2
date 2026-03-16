@@ -1,7 +1,7 @@
 // Copyright (c) David Bond, Tailscale Inc, & Contributors
 // SPDX-License-Identifier: MIT
 
-// package tailscale contains a basic implementation of a client for the Tailscale HTTP API.
+// Package tailscale contains a basic implementation of a client for the Tailscale HTTP API.
 //
 // Documentation is at https://tailscale.com/api
 package tailscale // import "tailscale.com/client/tailscale/v2"
@@ -71,7 +71,7 @@ type Client struct {
 type APIError struct {
 	Message string         `json:"message"`
 	Data    []APIErrorData `json:"data"`
-	status  int
+	Status  int            `json:"status"`
 }
 
 // APIErrorData type describes elements of the data field within errors returned by the Tailscale API.
@@ -366,7 +366,7 @@ func (c *Client) doWithResponseHeaders(req *http.Request, out any) (http.Header,
 			return res.Header, err
 		}
 
-		apiErr.status = res.StatusCode
+		apiErr.Status = res.StatusCode
 		return res.Header, apiErr
 	}
 
@@ -374,14 +374,14 @@ func (c *Client) doWithResponseHeaders(req *http.Request, out any) (http.Header,
 }
 
 func (err APIError) Error() string {
-	return fmt.Sprintf("%s (%v)", err.Message, err.status)
+	return fmt.Sprintf("%s (%v)", err.Message, err.Status)
 }
 
 // IsNotFound returns true if the provided error implementation is an APIError with a status of 404.
 func IsNotFound(err error) bool {
 	var apiErr APIError
 	if errors.As(err, &apiErr) {
-		return apiErr.status == http.StatusNotFound
+		return apiErr.Status == http.StatusNotFound
 	}
 
 	return false

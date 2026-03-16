@@ -6,6 +6,7 @@ package tailscale
 import (
 	_ "embed"
 	"io"
+	"net/http"
 	"net/url"
 	"testing"
 
@@ -71,4 +72,11 @@ func Test_BuildTailnetURLDefault(t *testing.T) {
 
 func ptrTo[T any](v T) *T {
 	return &v
+}
+
+func TestIsNotFound(t *testing.T) {
+	t.Parallel()
+
+	e := APIError{Status: http.StatusNotFound}
+	assert.True(t, IsNotFound(e))
 }
