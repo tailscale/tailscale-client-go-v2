@@ -58,6 +58,54 @@ func TestClient_GetService(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestClient_CreateService(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	svc := Service{
+		Name:    "svc:my-service",
+		Comment: "new service",
+		Ports:   []string{"443"},
+		Tags:    []string{"tag:web"},
+	}
+
+	err := client.Services().Create(context.Background(), svc)
+	assert.NoError(t, err)
+	assert.Equal(t, http.MethodPut, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/vip-services/svc:my-service", server.Path)
+
+	var received Service
+	err = json.Unmarshal(server.Body.Bytes(), &received)
+	assert.NoError(t, err)
+	assert.Equal(t, svc, received)
+}
+
+func TestClient_UpdateService(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	svc := Service{
+		Name:    "svc:my-service-renamed",
+		Comment: "updated service",
+		Ports:   []string{"443"},
+		Tags:    []string{"tag:web"},
+	}
+
+	err := client.Services().Update(context.Background(), "svc:my-service", svc)
+	assert.NoError(t, err)
+	assert.Equal(t, http.MethodPut, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/vip-services/svc:my-service", server.Path)
+
+	var received Service
+	err = json.Unmarshal(server.Body.Bytes(), &received)
+	assert.NoError(t, err)
+	assert.Equal(t, svc, received)
+}
+
 func TestClient_CreateOrUpdateService(t *testing.T) {
 	t.Parallel()
 

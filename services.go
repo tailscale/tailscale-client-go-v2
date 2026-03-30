@@ -51,14 +51,33 @@ func (sr *ServicesResource) Get(ctx context.Context, name string) (*Service, err
 	return body[Service](sr, req)
 }
 
-// CreateOrUpdate creates or updates a [Service].
-func (sr *ServicesResource) CreateOrUpdate(ctx context.Context, svc Service) error {
+// Create creates a new [Service].
+func (sr *ServicesResource) Create(ctx context.Context, svc Service) error {
 	req, err := sr.buildRequest(ctx, http.MethodPut, sr.buildTailnetURL("vip-services", svc.Name), requestBody(svc))
 	if err != nil {
 		return err
 	}
 
 	return sr.do(req, nil)
+}
+
+// Update updates an existing [Service] identified by name. The name parameter
+// is the current name of the service and is used to build the request URL.
+// If svc.Name differs from name, the service will be renamed, preserving its
+// assigned VIPs.
+func (sr *ServicesResource) Update(ctx context.Context, name string, svc Service) error {
+	req, err := sr.buildRequest(ctx, http.MethodPut, sr.buildTailnetURL("vip-services", name), requestBody(svc))
+	if err != nil {
+		return err
+	}
+
+	return sr.do(req, nil)
+}
+
+// CreateOrUpdate creates or updates a [Service].
+// Deprecated: use [ServicesResource.Create] or [ServicesResource.Update] instead.
+func (sr *ServicesResource) CreateOrUpdate(ctx context.Context, svc Service) error {
+	return sr.Create(ctx, svc)
 }
 
 // Delete deletes a specific [Service].
