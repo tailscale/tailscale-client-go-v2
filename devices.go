@@ -74,42 +74,43 @@ type Distro struct {
 }
 
 type DevicePostureIdentity struct {
-	SerialNumbers []string `json:"serialNumbers"`
-	Disabled      bool     `json:"disabled"`
+	SerialNumbers     []string `json:"serialNumbers"`
+	Disabled          bool     `json:"disabled"`
+	HardwareAddresses []string `json:"hardwareAddresses,omitempty"`
 }
 
 type Device struct {
-	Addresses                 []string               `json:"addresses"`
-	Name                      string                 `json:"name"`
-	ID                        string                 `json:"id"`     // The legacy identifier for a device. Use NodeId instead.
-	NodeID                    string                 `json:"nodeId"` // The preferred identifier for a device.
-	Authorized                bool                   `json:"authorized"`
-	User                      string                 `json:"user"`
-	Tags                      []string               `json:"tags"`
-	KeyExpiryDisabled         bool                   `json:"keyExpiryDisabled"`
-	BlocksIncomingConnections bool                   `json:"blocksIncomingConnections"`
-	ClientVersion             string                 `json:"clientVersion"`
-	Created                   Time                   `json:"created"`
-	Expires                   Time                   `json:"expires"`
-	Hostname                  string                 `json:"hostname"`
-	IsEphemeral               bool                   `json:"isEphemeral"`
-	IsExternal                bool                   `json:"isExternal"`
-	ConnectedToControl        bool                   `json:"connectedToControl"`
-	LastSeen                  *Time                  `json:"lastSeen"` // Will be nil if ConnectedToControl is true.
-	MachineKey                string                 `json:"machineKey"`
-	NodeKey                   string                 `json:"nodeKey"`
-	OS                        string                 `json:"os"`
-	TailnetLockError          string                 `json:"tailnetLockError"`
-	TailnetLockKey            string                 `json:"tailnetLockKey"`
-	UpdateAvailable           bool                   `json:"updateAvailable"`
-	PostureIdentity           *DevicePostureIdentity `json:"postureIdentity"`
+	Addresses                 []string `json:"addresses"`
+	Name                      string   `json:"name"`
+	ID                        string   `json:"id"`     // The legacy identifier for a device. Use NodeId instead.
+	NodeID                    string   `json:"nodeId"` // The preferred identifier for a device.
+	Authorized                bool     `json:"authorized"`
+	User                      string   `json:"user"`
+	Tags                      []string `json:"tags"`
+	KeyExpiryDisabled         bool     `json:"keyExpiryDisabled"`
+	BlocksIncomingConnections bool     `json:"blocksIncomingConnections"`
+	ClientVersion             string   `json:"clientVersion"`
+	Created                   Time     `json:"created"`
+	Expires                   Time     `json:"expires"`
+	Hostname                  string   `json:"hostname"`
+	IsEphemeral               bool     `json:"isEphemeral"`
+	IsExternal                bool     `json:"isExternal"`
+	ConnectedToControl        bool     `json:"connectedToControl"`
+	LastSeen                  *Time    `json:"lastSeen"` // Will be nil if ConnectedToControl is true.
+	MachineKey                string   `json:"machineKey"`
+	NodeKey                   string   `json:"nodeKey"`
+	OS                        string   `json:"os"`
+	TailnetLockError          string   `json:"tailnetLockError"`
+	TailnetLockKey            string   `json:"tailnetLockKey"`
+	UpdateAvailable           bool     `json:"updateAvailable"`
 
 	// The below are only included in listings when querying `all` fields.
-	SSHEnabled         bool                `json:"sshEnabled"`
-	AdvertisedRoutes   []string            `json:"AdvertisedRoutes"`
-	EnabledRoutes      []string            `json:"enabledRoutes"`
-	ClientConnectivity *ClientConnectivity `json:"clientConnectivity"`
-	Distro             *Distro             `json:"distro"`
+	PostureIdentity    *DevicePostureIdentity `json:"postureIdentity"`
+	SSHEnabled         bool                   `json:"sshEnabled"`
+	AdvertisedRoutes   []string               `json:"AdvertisedRoutes"`
+	EnabledRoutes      []string               `json:"enabledRoutes"`
+	ClientConnectivity *ClientConnectivity    `json:"clientConnectivity"`
+	Distro             *Distro                `json:"distro"`
 }
 
 type DevicePostureAttributes struct {
