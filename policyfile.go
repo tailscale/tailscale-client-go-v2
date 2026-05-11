@@ -94,6 +94,7 @@ type RawACL struct {
 type ACLAutoApprovers struct {
 	Routes   map[string][]string `json:"routes,omitempty" hujson:"Routes,omitempty"`
 	ExitNode []string            `json:"exitNode,omitempty" hujson:"ExitNode,omitempty"`
+	Services map[string][]string `json:"services,omitempty" hujson:"Services,omitempty"`
 }
 
 type ACLEntry struct {
