@@ -161,9 +161,10 @@ type NodeAttrGrant struct {
 }
 
 type NodeAttrGrantApp struct {
-	Name       string   `json:"name,omitempty" hujson:"Name,omitempty"`
-	Connectors []string `json:"connectors,omitempty" hujson:"Connectors,omitempty"`
-	Domains    []string `json:"domains,omitempty" hujson:"Domains,omitempty"`
+	Name        string   `json:"name,omitempty" hujson:"Name,omitempty"`
+	Connectors  []string `json:"connectors,omitempty" hujson:"Connectors,omitempty"`
+	Domains     []string `json:"domains,omitempty" hujson:"Domains,omitempty"`
+	PresetAppID string   `json:"presetAppID,omitempty" hujson:"PresetAppID,omitempty"`
 }
 
 type Grant struct {
