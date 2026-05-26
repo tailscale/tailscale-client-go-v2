@@ -630,3 +630,96 @@ func TestSSHCheckPeriod(t *testing.T) {
 		})
 	}
 }
+
+func TestClient_ValidateACL(t *testing.T) {
+	t.Parallel()
+
+	t.Run("passing-test", func(t *testing.T) {
+		client, server := NewTestHarness(t)
+		server.ResponseCode = http.StatusOK
+		server.ResponseBody = nil
+
+		err := client.PolicyFile().Validate(t.Context(), `
+			'[
+				{
+				"src": "user1@example.com",
+				"accept": [
+					"example-host-1:22"
+				],
+				"deny": [
+					"example-host-2:100"
+				]
+				}
+			]'
+		`)
+		assert.NoError(t, err)
+	})
+
+	t.Run("passing-test-as-acl", func(t *testing.T) {
+		client, server := NewTestHarness(t)
+		server.ResponseCode = http.StatusOK
+
+		err := client.PolicyFile().Validate(t.Context(), ACL{
+			Grants: []Grant{},
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("failing-test-as-string-literal", func(t *testing.T) {
+		client, server := NewTestHarness(t)
+		server.ResponseCode = http.StatusOK
+		body := []byte(`{
+			"message": "test(s) failed",
+			"data": [
+				{
+					"user": "user1@example.com",
+					"errors": [
+						"[acl test error]: user or host is invalid: unknown user or host: \"example-host-1\""
+					]
+				}
+			]
+		}`)
+		server.ResponseBody = body
+
+		err := client.PolicyFile().Validate(t.Context(), `
+			'[
+				{
+				"src": "user1@example.com",
+				"accept": [
+					"example-host-1:22"
+				],
+				"deny": [
+					"example-host-2:100"
+				]
+				}
+			]'
+		`)
+		assert.EqualValues(t, err.Error(), "ACL validation failed: test(s) failed; [{user1@example.com [[acl test error]: user or host is invalid: unknown user or host: \"example-host-1\"]}]")
+	})
+
+	t.Run("failing-list-of-acl-tests", func(t *testing.T) {
+		client, server := NewTestHarness(t)
+		server.ResponseCode = http.StatusOK
+		body := []byte(`{
+			"message": "test(s) failed",
+			"data": [
+				{
+					"user": "user1@example.com",
+					"errors": [
+						"[acl test error]: user or host is invalid: unknown user or host: \"example-host-1\""
+					]
+				}
+			]
+		}`)
+		server.ResponseBody = body
+
+		err := client.PolicyFile().Validate(t.Context(), []ACLTest{
+			{
+				User:  "user1@example.com",
+				Allow: []string{"example-host-1:22"},
+				Deny:  []string{"example-host-2:100"},
+			},
+		})
+		assert.EqualValues(t, err.Error(), "ACL validation failed: test(s) failed; [{user1@example.com [[acl test error]: user or host is invalid: unknown user or host: \"example-host-1\"]}]")
+	})
+}

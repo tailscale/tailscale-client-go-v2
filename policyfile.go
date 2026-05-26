@@ -5,6 +5,7 @@ package tailscale
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -274,17 +275,19 @@ func (pr *PolicyFileResource) SetAndGet(ctx context.Context, acl ACL, etag strin
 	return out, nil
 }
 
-// Validate validates the provided ACL via the API. acl can either be an [ACL], or a HuJSON string.
+// Validate validates the provided ACL via the API. acl can either be an [ACL], a list of [ACLTest],
+// or a HuJSON string.
 func (pr *PolicyFileResource) Validate(ctx context.Context, acl any) error {
 	reqOpts := []requestOption{
 		requestBody(acl),
 	}
 	switch v := acl.(type) {
 	case ACL:
+	case []ACLTest:
 	case string:
 		reqOpts = append(reqOpts, requestContentType("application/hujson"))
 	default:
-		return fmt.Errorf("expected ACL content as a string or as ACL struct; got %T", v)
+		return fmt.Errorf("expected ACL content as a string, an ACL struct, or a list of ACLTest; got %T", v)
 	}
 
 	req, err := pr.buildRequest(ctx, http.MethodPost, pr.buildTailnetURL("acl", "validate"), reqOpts...)
@@ -292,12 +295,24 @@ func (pr *PolicyFileResource) Validate(ctx context.Context, acl any) error {
 		return err
 	}
 
-	var response APIError
-	if err := pr.do(req, &response); err != nil {
+	var body []byte
+	statusCode, _, err := pr.doWithStatusAndResponseHeaders(req, &body)
+	if err != nil {
 		return err
 	}
-	if response.Message != "" {
-		return fmt.Errorf("ACL validation failed: %s; %v", response.Message, response.Data)
+
+	// The API returns a 200 OK with an empty response body if the tests passed.
+	if statusCode == http.StatusOK && len(body) == 0 {
+		return nil
+	}
+
+	// If we got a non-200 OK or a non-empty response body, parse it as an APIError.
+	var apiErr APIError
+	if err := json.Unmarshal(body, &apiErr); err != nil {
+		return fmt.Errorf("unable to unmarshal JSON response: %v", err)
+	}
+	if apiErr.Message != "" {
+		return fmt.Errorf("ACL validation failed: %s; %v", apiErr.Message, apiErr.Data)
 	}
 	return nil
 }
