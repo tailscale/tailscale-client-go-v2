@@ -27,6 +27,18 @@ type serviceList struct {
 	Services []Service `json:"vipServices"`
 }
 
+// ServiceHostInfo is an information summary for a device hosting a [Service].
+type ServiceHostInfo struct {
+	// note the open-api spec says the key is "stableNodeID", but the actual api returns "nodeId"
+	StableNodeID  string `json:"nodeId,omitempty"`
+	ApprovalLevel string `json:"approvalLevel,omitempty"`
+	Configured    string `json:"configured,omitempty"`
+}
+
+type serviceHostList struct {
+	Hosts []ServiceHostInfo `json:"hosts"`
+}
+
 // List lists every [Service] in the tailnet.
 func (sr *ServicesResource) List(ctx context.Context) ([]Service, error) {
 	req, err := sr.buildRequest(ctx, http.MethodGet, sr.buildTailnetURL("vip-services"))
@@ -59,6 +71,19 @@ func (sr *ServicesResource) CreateOrUpdate(ctx context.Context, svc Service) err
 	}
 
 	return sr.do(req, nil)
+}
+
+// ServiceDevices lists all devices hosting the specified [Service].
+func (sr *ServicesResource) ServiceDevices(ctx context.Context, name string) ([]ServiceHostInfo, error) {
+	req, err := sr.buildRequest(ctx, http.MethodGet, sr.buildTailnetURL("services", name, "devices"))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := body[serviceHostList](sr, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Hosts, nil
 }
 
 // Delete deletes a specific [Service].
