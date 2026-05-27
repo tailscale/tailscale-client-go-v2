@@ -86,6 +86,25 @@ func (sr *ServicesResource) ServiceDevices(ctx context.Context, name string) ([]
 	return resp.Hosts, nil
 }
 
+// ServiceApproval is the approval status of a [Service] on a specific device.
+type ServiceApproval struct {
+	Approved     bool `json:"approved"`
+	AutoApproved bool `json:"autoApproved,omitempty"`
+}
+
+type setServiceApprovalRequest struct {
+	Approved bool `json:"approved"`
+}
+
+// SetDeviceApproval sets the approval status of the named [Service] on the specified device.
+func (sr *ServicesResource) SetDeviceApproval(ctx context.Context, name, deviceID string, approved bool) (*ServiceApproval, error) {
+	req, err := sr.buildRequest(ctx, http.MethodPost, sr.buildTailnetURL("services", name, "device", deviceID, "approved"), requestBody(setServiceApprovalRequest{Approved: approved}))
+	if err != nil {
+		return nil, err
+	}
+	return body[ServiceApproval](sr, req)
+}
+
 // Delete deletes a specific [Service].
 func (sr *ServicesResource) Delete(ctx context.Context, name string) error {
 	req, err := sr.buildRequest(ctx, http.MethodDelete, sr.buildTailnetURL("vip-services", name))
