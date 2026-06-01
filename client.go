@@ -337,7 +337,7 @@ func (c *Client) doWithResponseHeaders(req *http.Request, out any) (http.Header,
 func (c *Client) doWithStatusAndResponseHeaders(req *http.Request, out any) (int, http.Header, error) {
 	res, err := c.HTTP.Do(req)
 	if err != nil {
-		return res.StatusCode, nil, err
+		return 0, nil, err
 	}
 	defer res.Body.Close()
 
