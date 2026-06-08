@@ -61,6 +61,7 @@ type Client struct {
 	keys            *KeysResource
 	logging         *LoggingResource
 	policyFile      *PolicyFileResource
+	tailnets        *TailnetsResource
 	tailnetSettings *TailnetSettingsResource
 	users           *UsersResource
 	services        *ServicesResource
@@ -121,6 +122,7 @@ func (c *Client) init() {
 		c.keys = &KeysResource{c}
 		c.logging = &LoggingResource{c}
 		c.policyFile = &PolicyFileResource{c}
+		c.tailnets = &TailnetsResource{c}
 		c.tailnetSettings = &TailnetSettingsResource{c}
 		c.users = &UsersResource{c}
 		c.services = &ServicesResource{c}
@@ -168,6 +170,12 @@ func (c *Client) Logging() *LoggingResource {
 func (c *Client) PolicyFile() *PolicyFileResource {
 	c.init()
 	return c.policyFile
+}
+
+// Tailnets provides access to tailnet creation APIs.
+func (c *Client) Tailnets() *TailnetsResource {
+	c.init()
+	return c.tailnets
 }
 
 // TailnetSettings provides access to https://tailscale.com/api#tag/tailnetsettings.
