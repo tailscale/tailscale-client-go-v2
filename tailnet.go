@@ -60,7 +60,7 @@ func (tr *TailnetsResource) List(ctx context.Context) ([]Tailnet, error) {
 	return resp["tailnets"], nil
 }
 
-// Delete deletes the tailnet identified by the client's configured tailnet.
+// Delete deletes the tailnet associated with the current client.
 func (tr *TailnetsResource) Delete(ctx context.Context) error {
 	req, err := tr.buildRequest(ctx, http.MethodDelete, tr.buildTailnetURL())
 	if err != nil {
