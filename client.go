@@ -61,6 +61,7 @@ type Client struct {
 	keys            *KeysResource
 	logging         *LoggingResource
 	policyFile      *PolicyFileResource
+	tailnets        *TailnetsResource
 	tailnetSettings *TailnetSettingsResource
 	users           *UsersResource
 	services        *ServicesResource
@@ -121,6 +122,7 @@ func (c *Client) init() {
 		c.keys = &KeysResource{c}
 		c.logging = &LoggingResource{c}
 		c.policyFile = &PolicyFileResource{c}
+		c.tailnets = &TailnetsResource{c}
 		c.tailnetSettings = &TailnetSettingsResource{c}
 		c.users = &UsersResource{c}
 		c.services = &ServicesResource{c}
@@ -168,6 +170,12 @@ func (c *Client) Logging() *LoggingResource {
 func (c *Client) PolicyFile() *PolicyFileResource {
 	c.init()
 	return c.policyFile
+}
+
+// Tailnets provides access to tailnet creation APIs.
+func (c *Client) Tailnets() *TailnetsResource {
+	c.init()
+	return c.tailnets
 }
 
 // TailnetSettings provides access to https://tailscale.com/api#tag/tailnetsettings.
@@ -330,15 +338,20 @@ func (c *Client) do(req *http.Request, out any) error {
 }
 
 func (c *Client) doWithResponseHeaders(req *http.Request, out any) (http.Header, error) {
+	_, header, err := c.doWithStatusAndResponseHeaders(req, out)
+	return header, err
+}
+
+func (c *Client) doWithStatusAndResponseHeaders(req *http.Request, out any) (int, http.Header, error) {
 	res, err := c.HTTP.Do(req)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return res.StatusCode, nil, err
 	}
 
 	if res.StatusCode >= http.StatusOK && res.StatusCode < http.StatusMultipleChoices {
@@ -346,37 +359,37 @@ func (c *Client) doWithResponseHeaders(req *http.Request, out any) (http.Header,
 		// API responses have empty bodies, so we don't want to try and standardize them for
 		// parsing.
 		if out == nil {
-			return res.Header, nil
+			return res.StatusCode, res.Header, nil
 		}
 
 		// If we're expected to write result into a []byte, do not attempt to parse it.
 		if o, ok := out.(*[]byte); ok {
 			*o = bytes.Clone(body)
-			return res.Header, nil
+			return res.StatusCode, res.Header, nil
 		}
 
 		// If we've got hujson back, convert it to JSON, so we can natively parse it.
 		if !json.Valid(body) {
 			body, err = hujson.Standardize(body)
 			if err != nil {
-				return res.Header, err
+				return res.StatusCode, res.Header, err
 			}
 		}
 
-		return res.Header, json.Unmarshal(body, out)
+		return res.StatusCode, res.Header, json.Unmarshal(body, out)
 	}
 
 	if res.StatusCode >= http.StatusBadRequest {
 		var apiErr APIError
 		if err := json.Unmarshal(body, &apiErr); err != nil {
-			return res.Header, err
+			return res.StatusCode, res.Header, err
 		}
 
 		apiErr.Status = res.StatusCode
-		return res.Header, apiErr
+		return res.StatusCode, res.Header, apiErr
 	}
 
-	return res.Header, nil
+	return res.StatusCode, res.Header, nil
 }
 
 func (err APIError) Error() string {
