@@ -16,6 +16,7 @@ type ServicesResource struct {
 // Service is a Tailscale service with a stable virtual IP address.
 type Service struct {
 	Name        string            `json:"name,omitempty"`
+	DisplayName string            `json:"displayName,omitempty"`
 	Addrs       []string          `json:"addrs,omitempty"`
 	Comment     string            `json:"comment,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`

@@ -20,11 +20,12 @@ func TestClient_ListServices(t *testing.T) {
 
 	expected := []Service{
 		{
-			Name:    "svc:my-service",
-			Addrs:   []string{"100.64.0.1", "fd7a:115c:a1e0::1"},
-			Comment: "test service",
-			Ports:   []string{"443"},
-			Tags:    []string{"tag:web"},
+			Name:        "svc:my-service",
+			DisplayName: "My Service",
+			Addrs:       []string{"100.64.0.1", "fd7a:115c:a1e0::1"},
+			Comment:     "test service",
+			Ports:       []string{"443"},
+			Tags:        []string{"tag:web"},
 		},
 	}
 	server.ResponseBody = serviceList{Services: expected}
@@ -43,11 +44,12 @@ func TestClient_GetService(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 
 	expected := &Service{
-		Name:    "svc:my-service",
-		Addrs:   []string{"100.64.0.1", "fd7a:115c:a1e0::1"},
-		Comment: "test service",
-		Ports:   []string{"443"},
-		Tags:    []string{"tag:web"},
+		Name:        "svc:my-service",
+		DisplayName: "My Service",
+		Addrs:       []string{"100.64.0.1", "fd7a:115c:a1e0::1"},
+		Comment:     "test service",
+		Ports:       []string{"443"},
+		Tags:        []string{"tag:web"},
 	}
 	server.ResponseBody = expected
 
@@ -65,10 +67,11 @@ func TestClient_CreateOrUpdateService(t *testing.T) {
 	server.ResponseCode = http.StatusOK
 
 	svc := Service{
-		Name:    "svc:my-service",
-		Comment: "new service",
-		Ports:   []string{"443"},
-		Tags:    []string{"tag:web"},
+		Name:        "svc:my-service",
+		DisplayName: "My Service",
+		Comment:     "new service",
+		Ports:       []string{"443"},
+		Tags:        []string{"tag:web"},
 	}
 
 	err := client.Services().CreateOrUpdate(context.Background(), svc)
