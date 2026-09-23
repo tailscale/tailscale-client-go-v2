@@ -76,6 +76,8 @@ type ACL struct {
 	Postures             map[string][]string `json:"postures,omitempty" hujson:"Postures,omitempty"`
 	DefaultSourcePosture []string            `json:"defaultSrcPosture,omitempty" hujson:"DefaultSrcPosture,omitempty"`
 
+	ExternalTailnets map[string]ExternalTailnet `json:"externalTailnets,omitempty" hujson:"ExternalTailnets,omitempty"`
+
 	// AttrConfig maps attribute names to their configuration for custom device attributes.
 	AttrConfig map[string]ACLAttrConfig `json:"attrConfig,omitempty" hujson:"AttrConfig,omitempty"`
 
@@ -185,6 +187,12 @@ type ACLAttrConfig struct {
 	AllowSetByNode bool `json:"allowSetByNode,omitempty" hujson:"AllowSetByNode,omitempty"`
 	// BroadcastToPeers is a list of destinations which should receive this attribute value, e.g. ["tag:admin"].
 	BroadcastToPeers []string `json:"broadcastToPeers,omitempty" hujson:"BroadcastToPeers,omitempty"`
+}
+
+type ExternalTailnet struct {
+	ExternalID                string   `json:"externalID,omitzero" hujson:"ExternalID,omitempty"`
+	AllowIncomingConnections  bool     `json:"allowIncomingConnections,omitzero" hujson:"AllowIncomingConnections,omitempty"`
+	AllowExternalReferencesTo []string `json:"allowExternalReferencesTo,omitempty" hujson:"AllowExternalReferencesTo,omitempty"`
 }
 
 // Get retrieves the [ACL] that is currently set for the tailnet.
