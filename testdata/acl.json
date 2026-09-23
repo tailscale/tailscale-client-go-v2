@@ -92,5 +92,12 @@
         "add 192.0.2.0/24",
         "remove 192.0.2.33"
     ]
+  },
+  "externalTailnets": {
+    "other": {
+      "externalID": "123CTRL",
+      "allowIncomingConnections": true,
+      "allowExternalReferencesTo": ["tag:device"]
+    }
   }
 }
