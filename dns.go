@@ -21,6 +21,11 @@ type SplitDNSResponse SplitDNSRequest
 
 type DNSPreferences struct {
 	MagicDNS bool `json:"magicDNS"`
+
+	// OverrideLocalDNS reports whether the global nameservers override the
+	// local OS DNS configuration. In [DNSResource.SetPreferences] requests,
+	// a nil value preserves the tailnet's current setting.
+	OverrideLocalDNS *bool `json:"overrideLocalDNS,omitempty"`
 }
 
 // SetSearchPaths replaces the list of search paths with the list supplied by the user and returns an error otherwise.

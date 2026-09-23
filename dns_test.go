@@ -117,6 +117,28 @@ func TestClient_SetDNSPreferences(t *testing.T) {
 	var body DNSPreferences
 	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &body))
 	assert.EqualValues(t, preferences, body)
+
+	// A nil OverrideLocalDNS stays out of the request so the tailnet's
+	// current setting is preserved.
+	assert.JSONEq(t, `{"magicDNS": true}`, server.Body.String())
+}
+
+func TestClient_SetDNSPreferencesOverrideLocalDNS(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	override := true
+	preferences := DNSPreferences{
+		MagicDNS:         true,
+		OverrideLocalDNS: &override,
+	}
+
+	assert.NoError(t, client.DNS().SetPreferences(context.Background(), preferences))
+	assert.Equal(t, http.MethodPost, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/dns/preferences", server.Path)
+	assert.JSONEq(t, `{"magicDNS": true, "overrideLocalDNS": true}`, server.Body.String())
 }
 
 func TestClient_SetDNSSearchPaths(t *testing.T) {
