@@ -133,6 +133,17 @@ func (dr *DNSResource) SetSplitDNS(ctx context.Context, request SplitDNSRequest)
 	return dr.do(req, nil)
 }
 
+// SetSplitDNSResolvers replaces all split DNS settings with resolver-specific
+// options. Passing an empty request removes all split DNS mappings.
+func (dr *DNSResource) SetSplitDNSResolvers(ctx context.Context, request SplitDNSResolverRequest) error {
+	req, err := dr.buildRequest(ctx, http.MethodPut, dr.buildTailnetURL("dns", "split-dns"), requestBody(request))
+	if err != nil {
+		return err
+	}
+
+	return dr.do(req, nil)
+}
+
 // SplitDNS retrieves the split DNS configuration for the tailnet.
 func (dr *DNSResource) SplitDNS(ctx context.Context) (SplitDNSResponse, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildTailnetURL("dns", "split-dns"))
