@@ -163,6 +163,53 @@ func TestClient_UpdateSplitDNS(t *testing.T) {
 	assert.EqualValues(t, expectedNameservers, resp)
 }
 
+func TestClient_UpdateSplitDNSResolvers(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	request := SplitDNSResolverRequest{
+		"example.com": {
+			{Address: "1.1.2.1", UseWithExitNode: true},
+			{Address: "3.3.3.4"},
+		},
+	}
+	expectedNameservers := SplitDNSResponse{
+		"example.com": {"1.1.2.1", "3.3.3.4"},
+	}
+	server.ResponseBody = expectedNameservers
+
+	resp, err := client.DNS().UpdateSplitDNSResolvers(context.Background(), request)
+	assert.NoError(t, err)
+	assert.Equal(t, http.MethodPatch, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/dns/split-dns", server.Path)
+	assert.JSONEq(t, `{
+		"example.com": [
+			{"address": "1.1.2.1", "useWithExitNode": true},
+			{"address": "3.3.3.4"}
+		]
+	}`, server.Body.String())
+
+	var body SplitDNSResolverRequest
+	assert.NoError(t, json.Unmarshal(server.Body.Bytes(), &body))
+	assert.EqualValues(t, request, body)
+	assert.EqualValues(t, expectedNameservers, resp)
+}
+
+func TestClient_UpdateSplitDNSResolversDeleteDomain(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+	server.ResponseBody = SplitDNSResponse{}
+
+	request := SplitDNSResolverRequest{"example.com": nil}
+	_, err := client.DNS().UpdateSplitDNSResolvers(context.Background(), request)
+	assert.NoError(t, err)
+	assert.JSONEq(t, `{"example.com": null}`, server.Body.String())
+}
+
 func TestClient_SetSplitDNS(t *testing.T) {
 	t.Parallel()
 

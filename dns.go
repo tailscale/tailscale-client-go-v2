@@ -19,6 +19,10 @@ type SplitDNSRequest map[string][]string
 // SplitDNSResponse is a map from domain names to a list of nameservers.
 type SplitDNSResponse SplitDNSRequest
 
+// SplitDNSResolverRequest is a map from domain names to DNS resolvers with
+// resolver-specific options.
+type SplitDNSResolverRequest map[string][]DNSConfigurationResolver
+
 type DNSPreferences struct {
 	MagicDNS bool `json:"magicDNS"`
 }
@@ -87,6 +91,22 @@ func (dr *DNSResource) Nameservers(ctx context.Context) ([]string, error) {
 // current value associated with the domain. Domains not included in the request
 // will remain unchanged.
 func (dr *DNSResource) UpdateSplitDNS(ctx context.Context, request SplitDNSRequest) (SplitDNSResponse, error) {
+	req, err := dr.buildRequest(ctx, http.MethodPatch, dr.buildTailnetURL("dns", "split-dns"), requestBody(request))
+	if err != nil {
+		return nil, err
+	}
+
+	var resp SplitDNSResponse
+	if err := dr.do(req, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// UpdateSplitDNSResolvers updates split DNS settings with resolver-specific
+// options. It updates specified domains and leaves other domains unchanged.
+// Mapping a domain to a nil slice removes that domain.
+func (dr *DNSResource) UpdateSplitDNSResolvers(ctx context.Context, request SplitDNSResolverRequest) (SplitDNSResponse, error) {
 	req, err := dr.buildRequest(ctx, http.MethodPatch, dr.buildTailnetURL("dns", "split-dns"), requestBody(request))
 	if err != nil {
 		return nil, err
