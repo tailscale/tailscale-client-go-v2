@@ -67,6 +67,22 @@ func (dr *DNSResource) SetNameservers(ctx context.Context, dns []string) error {
 	return dr.do(req, nil)
 }
 
+// SetNameserverResolvers replaces the list of DNS nameservers for the given
+// tailnet with resolvers that carry resolver-specific options. Resolver
+// options are write-only on this endpoint; read them back with
+// [DNSResource.Configuration]. Note that changing the list of DNS nameservers
+// may also affect the status of MagicDNS (if MagicDNS is on).
+func (dr *DNSResource) SetNameserverResolvers(ctx context.Context, nameservers []DNSConfigurationResolver) error {
+	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildTailnetURL("dns", "nameservers"), requestBody(map[string][]DNSConfigurationResolver{
+		"dns": nameservers,
+	}))
+	if err != nil {
+		return err
+	}
+
+	return dr.do(req, nil)
+}
+
 // Nameservers lists the DNS nameservers for the tailnet
 func (dr *DNSResource) Nameservers(ctx context.Context) ([]string, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildTailnetURL("dns", "nameservers"))
@@ -105,7 +121,9 @@ func (dr *DNSResource) UpdateSplitDNS(ctx context.Context, request SplitDNSReque
 
 // UpdateSplitDNSResolvers updates split DNS settings with resolver-specific
 // options. It updates specified domains and leaves other domains unchanged.
-// Mapping a domain to a nil slice removes that domain.
+// Mapping a domain to a nil or empty slice removes that domain. Resolver
+// options are write-only on this endpoint; read them back with
+// [DNSResource.Configuration].
 func (dr *DNSResource) UpdateSplitDNSResolvers(ctx context.Context, request SplitDNSResolverRequest) (SplitDNSResponse, error) {
 	req, err := dr.buildRequest(ctx, http.MethodPatch, dr.buildTailnetURL("dns", "split-dns"), requestBody(request))
 	if err != nil {

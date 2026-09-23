@@ -100,6 +100,40 @@ func TestClient_SetDNSNameservers(t *testing.T) {
 	assert.EqualValues(t, nameservers, body["dns"])
 }
 
+func TestClient_SetNameserverResolvers(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	nameservers := []DNSConfigurationResolver{
+		{Address: "8.8.8.8", UseWithExitNode: true},
+		{Address: "1.1.1.1"},
+	}
+
+	assert.NoError(t, client.DNS().SetNameserverResolvers(context.Background(), nameservers))
+	assert.Equal(t, http.MethodPost, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/dns/nameservers", server.Path)
+	assert.JSONEq(t, `{
+		"dns": [
+			{"address": "8.8.8.8", "useWithExitNode": true},
+			{"address": "1.1.1.1"}
+		]
+	}`, server.Body.String())
+}
+
+func TestClient_SetNameserverResolversEmpty(t *testing.T) {
+	t.Parallel()
+
+	client, server := NewTestHarness(t)
+	server.ResponseCode = http.StatusOK
+
+	assert.NoError(t, client.DNS().SetNameserverResolvers(context.Background(), nil))
+	assert.Equal(t, http.MethodPost, server.Method)
+	assert.Equal(t, "/api/v2/tailnet/example.com/dns/nameservers", server.Path)
+	assert.JSONEq(t, `{"dns": null}`, server.Body.String())
+}
+
 func TestClient_SetDNSPreferences(t *testing.T) {
 	t.Parallel()
 
