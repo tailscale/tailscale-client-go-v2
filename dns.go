@@ -19,6 +19,10 @@ type SplitDNSRequest map[string][]string
 // SplitDNSResponse is a map from domain names to a list of nameservers.
 type SplitDNSResponse SplitDNSRequest
 
+// SplitDNSResolverRequest is a map from domain names to DNS resolvers with
+// resolver-specific options.
+type SplitDNSResolverRequest map[string][]DNSConfigurationResolver
+
 type DNSPreferences struct {
 	MagicDNS bool `json:"magicDNS"`
 }
@@ -63,6 +67,22 @@ func (dr *DNSResource) SetNameservers(ctx context.Context, dns []string) error {
 	return dr.do(req, nil)
 }
 
+// SetNameserverResolvers replaces the list of DNS nameservers for the given
+// tailnet with resolvers that carry resolver-specific options. Resolver
+// options are write-only on this endpoint; read them back with
+// [DNSResource.Configuration]. Note that changing the list of DNS nameservers
+// may also affect the status of MagicDNS (if MagicDNS is on).
+func (dr *DNSResource) SetNameserverResolvers(ctx context.Context, nameservers []DNSConfigurationResolver) error {
+	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildTailnetURL("dns", "nameservers"), requestBody(map[string][]DNSConfigurationResolver{
+		"dns": nameservers,
+	}))
+	if err != nil {
+		return err
+	}
+
+	return dr.do(req, nil)
+}
+
 // Nameservers lists the DNS nameservers for the tailnet
 func (dr *DNSResource) Nameservers(ctx context.Context) ([]string, error) {
 	req, err := dr.buildRequest(ctx, http.MethodGet, dr.buildTailnetURL("dns", "nameservers"))
@@ -99,12 +119,41 @@ func (dr *DNSResource) UpdateSplitDNS(ctx context.Context, request SplitDNSReque
 	return resp, nil
 }
 
+// UpdateSplitDNSResolvers updates split DNS settings with resolver-specific
+// options. It updates specified domains and leaves other domains unchanged.
+// Mapping a domain to a nil or empty slice removes that domain. Resolver
+// options are write-only on this endpoint; read them back with
+// [DNSResource.Configuration].
+func (dr *DNSResource) UpdateSplitDNSResolvers(ctx context.Context, request SplitDNSResolverRequest) (SplitDNSResponse, error) {
+	req, err := dr.buildRequest(ctx, http.MethodPatch, dr.buildTailnetURL("dns", "split-dns"), requestBody(request))
+	if err != nil {
+		return nil, err
+	}
+
+	var resp SplitDNSResponse
+	if err := dr.do(req, &resp); err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 // SetSplitDNS sets the split DNS settings for the tailnet using the provided
 // [SplitDNSRequest] object. This is a PUT operation that fully replaces the underlying
 // data structure.
 //
 // Passing in an empty [SplitDNSRequest] will unset all split DNS mappings for the tailnet.
 func (dr *DNSResource) SetSplitDNS(ctx context.Context, request SplitDNSRequest) error {
+	req, err := dr.buildRequest(ctx, http.MethodPut, dr.buildTailnetURL("dns", "split-dns"), requestBody(request))
+	if err != nil {
+		return err
+	}
+
+	return dr.do(req, nil)
+}
+
+// SetSplitDNSResolvers replaces all split DNS settings with resolver-specific
+// options. Passing an empty request removes all split DNS mappings.
+func (dr *DNSResource) SetSplitDNSResolvers(ctx context.Context, request SplitDNSResolverRequest) error {
 	req, err := dr.buildRequest(ctx, http.MethodPut, dr.buildTailnetURL("dns", "split-dns"), requestBody(request))
 	if err != nil {
 		return err
