@@ -165,6 +165,13 @@ func TestACL_Unmarshal(t *testing.T) {
 						"remove 192.0.2.33",
 					},
 				},
+				ExternalTailnets: map[string]ExternalTailnet{
+					"other": {
+						ExternalID:                "123CTRL",
+						AllowIncomingConnections:  true,
+						AllowExternalReferencesTo: []string{"tag:device"},
+					},
+				},
 			},
 		},
 		{
@@ -329,6 +336,13 @@ func TestACL_Unmarshal(t *testing.T) {
 					"ipset:prod": {
 						"add 192.0.2.0/24",
 						"remove 192.0.2.33",
+					},
+				},
+				ExternalTailnets: map[string]ExternalTailnet{
+					"other": {
+						ExternalID:                "123CTRL",
+						AllowIncomingConnections:  true,
+						AllowExternalReferencesTo: []string{"tag:device"},
 					},
 				},
 			},
