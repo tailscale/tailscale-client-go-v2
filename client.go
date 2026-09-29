@@ -15,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -382,7 +383,9 @@ func (c *Client) doWithStatusAndResponseHeaders(req *http.Request, out any) (int
 	if res.StatusCode >= http.StatusBadRequest {
 		var apiErr APIError
 		if err := json.Unmarshal(body, &apiErr); err != nil {
-			return res.StatusCode, res.Header, err
+			// The body is not a JSON error, for example an empty 404 or an HTML page from
+			// a proxy. Still report the status so callers can use IsNotFound and friends.
+			apiErr = APIError{Message: nonJSONErrorMessage(res.StatusCode, body)}
 		}
 
 		apiErr.Status = res.StatusCode
@@ -390,6 +393,20 @@ func (c *Client) doWithStatusAndResponseHeaders(req *http.Request, out any) (int
 	}
 
 	return res.StatusCode, res.Header, nil
+}
+
+// nonJSONErrorMessage returns the message for an error response whose body is not JSON.
+func nonJSONErrorMessage(status int, body []byte) string {
+	const maxLen = 256
+
+	msg := string(bytes.TrimSpace(body))
+	if msg == "" {
+		return http.StatusText(status)
+	}
+	if len(msg) > maxLen {
+		msg = strings.ToValidUTF8(msg[:maxLen], "") + "..."
+	}
+	return msg
 }
 
 func (err APIError) Error() string {
