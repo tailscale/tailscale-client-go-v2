@@ -142,7 +142,7 @@ func (dr *DNSResource) Preferences(ctx context.Context) (*DNSPreferences, error)
 func (dr *DNSResource) SetPreferences(ctx context.Context, preferences DNSPreferences) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildTailnetURL("dns", "preferences"), requestBody(preferences))
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return dr.do(req, nil)
@@ -181,7 +181,7 @@ func (dr *DNSResource) Configuration(ctx context.Context) (*DNSConfiguration, er
 func (dr *DNSResource) SetConfiguration(ctx context.Context, configuration DNSConfiguration) error {
 	req, err := dr.buildRequest(ctx, http.MethodPost, dr.buildTailnetURL("dns", "configuration"), requestBody(configuration))
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return dr.do(req, nil)
