@@ -30,6 +30,7 @@ func TestClient_TailnetSettings_Get(t *testing.T) {
 		RegionalRoutingOn:                      true,
 		PostureIdentityCollectionOn:            true,
 		HTTPSEnabled:                           true,
+		RouteSelection:                         RouteSelectionRegionalRouting,
 	}
 	server.ResponseBody = expected
 
@@ -56,9 +57,12 @@ func TestClient_TailnetSettings_Update(t *testing.T) {
 		UsersApprovalOn:                        PointerTo(true),
 		UsersRoleAllowedToJoinExternalTailnets: PointerTo(RoleAllowedToJoinExternalTailnetsMember),
 		NetworkFlowLoggingOn:                   PointerTo(true),
-		RegionalRoutingOn:                      PointerTo(true),
 		PostureIdentityCollectionOn:            PointerTo(true),
 		HTTPSEnabled:                           PointerTo(true),
+		// In practice we forbid specifying both the RegionalRoutingOn and RouteSelection
+		// fields in the same update request, but this test is merely exercising serialization.
+		RegionalRoutingOn: PointerTo(true),
+		RouteSelection:    PointerTo(RouteSelectionRegionalRouting),
 	}
 	err := client.TailnetSettings().Update(context.Background(), updateRequest)
 	assert.NoError(t, err)

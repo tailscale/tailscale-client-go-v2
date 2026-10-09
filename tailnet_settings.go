@@ -26,10 +26,17 @@ type TailnetSettings struct {
 	UsersApprovalOn                        bool                              `json:"usersApprovalOn"`
 	UsersRoleAllowedToJoinExternalTailnets RoleAllowedToJoinExternalTailnets `json:"usersRoleAllowedToJoinExternalTailnets"`
 
-	NetworkFlowLoggingOn        bool `json:"networkFlowLoggingOn"`
-	RegionalRoutingOn           bool `json:"regionalRoutingOn"`
-	PostureIdentityCollectionOn bool `json:"postureIdentityCollectionOn"`
-	HTTPSEnabled                bool `json:"httpsEnabled"`
+	NetworkFlowLoggingOn bool `json:"networkFlowLoggingOn"`
+
+	// RegionalRoutingOn conveys whether a tailnet's [RouteSelection] is set to [RegionalRouting].
+	//
+	// Deprecated: This field has been superseded by [TailnetSettings.RouteSelection]
+	// as of 2026-10-09, but will be returned in GET responses for backwards compatibility.
+	RegionalRoutingOn bool `json:"regionalRoutingOn"`
+
+	PostureIdentityCollectionOn bool           `json:"postureIdentityCollectionOn"`
+	HTTPSEnabled                bool           `json:"httpsEnabled"`
+	RouteSelection              RouteSelection `json:"routeSelection"`
 }
 
 // UpdateTailnetSettingsRequest is a request to update the settings of a tailnet.
@@ -45,10 +52,22 @@ type UpdateTailnetSettingsRequest struct {
 	UsersApprovalOn                        *bool                              `json:"usersApprovalOn,omitempty"`
 	UsersRoleAllowedToJoinExternalTailnets *RoleAllowedToJoinExternalTailnets `json:"usersRoleAllowedToJoinExternalTailnets,omitempty"`
 
-	NetworkFlowLoggingOn        *bool `json:"networkFlowLoggingOn,omitempty"`
-	RegionalRoutingOn           *bool `json:"regionalRoutingOn,omitempty"`
+	NetworkFlowLoggingOn *bool `json:"networkFlowLoggingOn,omitempty"`
+
+	// RegionalRoutingOn is whether a tailnet's [RouteSelection] should be set to [RouteSelectionRegionalRouting].
+	//
+	// Deprecated: This field has been superseded by [UpdateTailnetSettingsRequest.RouteSelection]
+	// as of 2026-10-09, but can still be updated. Requests must not specify both the
+	// [UpdateTailnetSettingsRequest.RegionalRoutingOn] and [UpdateTailnetSettingsRequest.RouteSelection] fields.
+	RegionalRoutingOn *bool `json:"regionalRoutingOn,omitempty"`
+
 	PostureIdentityCollectionOn *bool `json:"postureIdentityCollectionOn,omitempty"`
 	HTTPSEnabled                *bool `json:"httpsEnabled,omitempty"`
+
+	// RouteSelection is the [RouteSelection] to set for a tailnet.
+	// Requests must not specify both the [UpdateTailnetSettingsRequest.RegionalRoutingOn] and
+	// [UpdateTailnetSettingsRequest.RouteSelection] fields.
+	RouteSelection *RouteSelection `json:"routeSelection,omitempty"`
 }
 
 // RoleAllowedToJoinExternalTailnets constrains which users are allowed to join external tailnets
@@ -59,6 +78,17 @@ const (
 	RoleAllowedToJoinExternalTailnetsNone   RoleAllowedToJoinExternalTailnets = "none"
 	RoleAllowedToJoinExternalTailnetsAdmin  RoleAllowedToJoinExternalTailnets = "admin"
 	RoleAllowedToJoinExternalTailnetsMember RoleAllowedToJoinExternalTailnets = "member"
+)
+
+// RouteSelection is the route selection algorithm for a tailnet.
+// See https://tailscale.com/docs/features/route-selection.
+type RouteSelection string
+
+const (
+	RouteSelectionActivePassiveFailover           RouteSelection = "active-passive-failover"
+	RouteSelectionRegionalRouting                 RouteSelection = "regional-routing"
+	RouteSelectionRegionalRoutingInRegionFailover RouteSelection = "regional-routing-failover"
+	RouteSelectionMagicRoute                      RouteSelection = "magicroute"
 )
 
 // Get retrieves the current [TailnetSettings].
