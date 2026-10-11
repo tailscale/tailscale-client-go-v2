@@ -34,9 +34,12 @@ type TailnetSettings struct {
 	// as of 2026-10-09, but will be returned in GET responses for backwards compatibility.
 	RegionalRoutingOn bool `json:"regionalRoutingOn"`
 
-	PostureIdentityCollectionOn bool           `json:"postureIdentityCollectionOn"`
-	HTTPSEnabled                bool           `json:"httpsEnabled"`
-	RouteSelection              RouteSelection `json:"routeSelection"`
+	PostureIdentityCollectionOn bool `json:"postureIdentityCollectionOn"`
+	// HTTPSEnabled is nil when the response omits httpsEnabled, which the API
+	// does for callers that cannot see the setting (for example OAuth clients),
+	// so an unknown value is not mistaken for false.
+	HTTPSEnabled   *bool          `json:"httpsEnabled"`
+	RouteSelection RouteSelection `json:"routeSelection"`
 }
 
 // UpdateTailnetSettingsRequest is a request to update the settings of a tailnet.
