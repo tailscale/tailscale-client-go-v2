@@ -29,7 +29,7 @@ func TestClient_TailnetSettings_Get(t *testing.T) {
 		NetworkFlowLoggingOn:                   true,
 		RegionalRoutingOn:                      true,
 		PostureIdentityCollectionOn:            true,
-		HTTPSEnabled:                           true,
+		HTTPSEnabled:                           PointerTo(true),
 		RouteSelection:                         RouteSelectionRegionalRouting,
 	}
 	server.ResponseBody = expected
@@ -39,6 +39,32 @@ func TestClient_TailnetSettings_Get(t *testing.T) {
 	assert.Equal(t, http.MethodGet, server.Method)
 	assert.Equal(t, "/api/v2/tailnet/example.com/settings", server.Path)
 	assert.Equal(t, &expected, actual)
+}
+
+func TestClient_TailnetSettings_Get_HTTPSEnabledPresence(t *testing.T) {
+	t.Parallel()
+
+	for _, testCase := range []struct {
+		name     string
+		body     string
+		expected *bool
+	}{
+		{name: "omitted", body: `{"devicesApprovalOn":true}`, expected: nil},
+		{name: "false", body: `{"httpsEnabled":false}`, expected: PointerTo(false)},
+		{name: "true", body: `{"httpsEnabled":true}`, expected: PointerTo(true)},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			client, server := NewTestHarness(t)
+			server.ResponseCode = http.StatusOK
+			server.ResponseBody = []byte(testCase.body)
+
+			actual, err := client.TailnetSettings().Get(context.Background())
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.expected, actual.HTTPSEnabled)
+		})
+	}
 }
 
 func TestClient_TailnetSettings_Update(t *testing.T) {
