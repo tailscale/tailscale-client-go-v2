@@ -27,6 +27,7 @@ const (
 	LogstreamAxiomEndpoint   LogstreamEndpointType = "axiom"
 	LogstreamS3Endpoint      LogstreamEndpointType = "s3"
 	LogstreamGCSEndpoint     LogstreamEndpointType = "gcs"
+	LogstreamAzureEndpoint   LogstreamEndpointType = "azure"
 )
 
 const (
@@ -47,45 +48,55 @@ const (
 
 // LogstreamConfiguration type defines a log stream entity in tailscale.
 type LogstreamConfiguration struct {
-	LogType              LogType               `json:"logType,omitempty"`
-	DestinationType      LogstreamEndpointType `json:"destinationType,omitempty"`
-	URL                  string                `json:"url,omitempty"`
-	User                 string                `json:"user,omitempty"`
-	UploadPeriodMinutes  int                   `json:"uploadPeriodMinutes,omitempty"`
-	CompressionFormat    CompressionFormat     `json:"compressionFormat,omitempty"`
-	S3Bucket             string                `json:"s3Bucket,omitempty"`
-	S3Region             string                `json:"s3Region,omitempty"`
-	S3KeyPrefix          string                `json:"s3KeyPrefix,omitempty"`
-	S3AuthenticationType S3AuthenticationType  `json:"s3AuthenticationType,omitempty"`
-	S3AccessKeyID        string                `json:"s3AccessKeyId,omitempty"`
-	S3RoleARN            string                `json:"s3RoleArn,omitempty"`
-	S3ExternalID         string                `json:"s3ExternalId,omitempty"`
-	GCSBucket            string                `json:"gcsBucket,omitempty"`
-	GCSKeyPrefix         string                `json:"gcsKeyPrefix,omitempty"`
-	GCSScopes            []string              `json:"gcsScopes,omitzero"`
-	GCSCredentials       string                `json:"gcsCredentials,omitempty"`
+	LogType                    LogType               `json:"logType,omitempty"`
+	DestinationType            LogstreamEndpointType `json:"destinationType,omitempty"`
+	URL                        string                `json:"url,omitempty"`
+	User                       string                `json:"user,omitempty"`
+	UploadPeriodMinutes        int                   `json:"uploadPeriodMinutes,omitempty"`
+	CompressionFormat          CompressionFormat     `json:"compressionFormat,omitempty"`
+	S3Bucket                   string                `json:"s3Bucket,omitempty"`
+	S3Region                   string                `json:"s3Region,omitempty"`
+	S3KeyPrefix                string                `json:"s3KeyPrefix,omitempty"`
+	S3AuthenticationType       S3AuthenticationType  `json:"s3AuthenticationType,omitempty"`
+	S3AccessKeyID              string                `json:"s3AccessKeyId,omitempty"`
+	S3RoleARN                  string                `json:"s3RoleArn,omitempty"`
+	S3ExternalID               string                `json:"s3ExternalId,omitempty"`
+	GCSBucket                  string                `json:"gcsBucket,omitempty"`
+	GCSKeyPrefix               string                `json:"gcsKeyPrefix,omitempty"`
+	GCSScopes                  []string              `json:"gcsScopes,omitzero"`
+	GCSCredentials             string                `json:"gcsCredentials,omitempty"`
+	AzureBlobContainerName     string                `json:"azureBlobContainerName,omitempty"`
+	AzureBlobKeyPrefix         string                `json:"azureBlobKeyPrefix,omitempty"`
+	AzureBlobTenantID          string                `json:"azureBlobTenantId,omitempty"`
+	AzureBlobClientID          string                `json:"azureBlobClientId,omitempty"`
+	AzureBlobStorageAccountURL string                `json:"azureBlobStorageAccountUrl,omitempty"`
 }
 
 // SetLogstreamConfigurationRequest type defines a request for setting a LogstreamConfiguration.
 type SetLogstreamConfigurationRequest struct {
-	DestinationType      LogstreamEndpointType `json:"destinationType,omitempty"`
-	URL                  string                `json:"url,omitempty"`
-	User                 string                `json:"user,omitempty"`
-	Token                string                `json:"token,omitempty"`
-	UploadPeriodMinutes  int                   `json:"uploadPeriodMinutes,omitempty"`
-	CompressionFormat    CompressionFormat     `json:"compressionFormat,omitempty"`
-	S3Bucket             string                `json:"s3Bucket,omitempty"`
-	S3Region             string                `json:"s3Region,omitempty"`
-	S3KeyPrefix          string                `json:"s3KeyPrefix,omitempty"`
-	S3AuthenticationType S3AuthenticationType  `json:"s3AuthenticationType,omitempty"`
-	S3AccessKeyID        string                `json:"s3AccessKeyId,omitempty"`
-	S3SecretAccessKey    string                `json:"s3SecretAccessKey,omitempty"`
-	S3RoleARN            string                `json:"s3RoleArn,omitempty"`
-	S3ExternalID         string                `json:"s3ExternalId,omitempty"`
-	GCSBucket            string                `json:"gcsBucket,omitempty"`
-	GCSKeyPrefix         string                `json:"gcsKeyPrefix,omitempty"`
-	GCSScopes            []string              `json:"gcsScopes,omitzero"`
-	GCSCredentials       string                `json:"gcsCredentials,omitempty"`
+	DestinationType            LogstreamEndpointType `json:"destinationType,omitempty"`
+	URL                        string                `json:"url,omitempty"`
+	User                       string                `json:"user,omitempty"`
+	Token                      string                `json:"token,omitempty"`
+	UploadPeriodMinutes        int                   `json:"uploadPeriodMinutes,omitempty"`
+	CompressionFormat          CompressionFormat     `json:"compressionFormat,omitempty"`
+	S3Bucket                   string                `json:"s3Bucket,omitempty"`
+	S3Region                   string                `json:"s3Region,omitempty"`
+	S3KeyPrefix                string                `json:"s3KeyPrefix,omitempty"`
+	S3AuthenticationType       S3AuthenticationType  `json:"s3AuthenticationType,omitempty"`
+	S3AccessKeyID              string                `json:"s3AccessKeyId,omitempty"`
+	S3SecretAccessKey          string                `json:"s3SecretAccessKey,omitempty"`
+	S3RoleARN                  string                `json:"s3RoleArn,omitempty"`
+	S3ExternalID               string                `json:"s3ExternalId,omitempty"`
+	GCSBucket                  string                `json:"gcsBucket,omitempty"`
+	GCSKeyPrefix               string                `json:"gcsKeyPrefix,omitempty"`
+	GCSScopes                  []string              `json:"gcsScopes,omitzero"`
+	GCSCredentials             string                `json:"gcsCredentials,omitempty"`
+	AzureBlobContainerName     string                `json:"azureBlobContainerName,omitempty"`
+	AzureBlobKeyPrefix         string                `json:"azureBlobKeyPrefix,omitempty"`
+	AzureBlobTenantID          string                `json:"azureBlobTenantId,omitempty"`
+	AzureBlobClientID          string                `json:"azureBlobClientId,omitempty"`
+	AzureBlobStorageAccountURL string                `json:"azureBlobStorageAccountUrl,omitempty"`
 }
 
 // LogstreamEndpointType describes the type of the endpoint.
