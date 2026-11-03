@@ -52,12 +52,15 @@ func (tr *TailnetsResource) List(ctx context.Context) ([]Tailnet, error) {
 		return nil, err
 	}
 
-	resp := make(map[string][]Tailnet)
+	type respData struct {
+		Tailnets []Tailnet `json:"tailnets"`
+	}
+	resp := respData{}
 	if err = tr.do(req, &resp); err != nil {
 		return nil, err
 	}
 
-	return resp["tailnets"], nil
+	return resp.Tailnets, nil
 }
 
 // Delete deletes the tailnet associated with the current client.
